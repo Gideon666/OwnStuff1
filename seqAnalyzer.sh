@@ -95,7 +95,7 @@ tReads=$(expr $(cat "$sourceFile" | wc -l ) / 4) #| gawk '{if($2 !="total") prin
 #Total Reads
 echo -e "TR\t$tReads" >> $statFile
 
-scriptSource="/home/mitschke/Data/Scripts/shRNASeqAnalyzer/subScripts"
+scriptSource="/home/mitschke/Data/Scripts/shRNASeqAnalyzer/subScripts/"
 
 ## 1.###############
 # SeqTrim
