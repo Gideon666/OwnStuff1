@@ -62,7 +62,7 @@ def structStats(statDict):
     """
     #StatDict[Fieldcode] = [Barcode, Infos, ...]
     oneFieldKeys = ["BR", "CR", "FR", "HR", "SR", "LR"]
-    twoFieldKeys = ["BC", "CU", "CO",       "SC", "LN", "MB"]
+    twoFieldKeys = ["BC", "CU", "CO",       "SC", "LN", "MB", "VB"]
     threeFieldKeys = ["HF"]
     BarcodeDict = {}
     TotalInfo = {}
@@ -116,6 +116,7 @@ def readInStatFile(eStatfile):
     LN : Second collapse BLAT Reads : 2
     LR : Second collapse total Reads : 1
     MB : mask(loop) in barcode split files
+    VB : mirsequence in bacode split files
     
     e.g
     BC  ACGTACGT        10000
@@ -147,7 +148,7 @@ def writeCSVStats(args, optionDir):
     tDict = optionDir['TotalsDict']
     outputString = ""
     header = "#SampleID\tDescription\tBarcode\tBarcoded Reads\t\
-PerfectMask\tCutout Sequences\tCollapsed to # unique Sequences \tshRNAs Blat Hits\t\
+PerfectLoop\t5'mir Sequence\tCutout Sequences\tCollapsed to # unique Sequences \tshRNAs Blat Hits\t\
 Blat Hits with total # of Reads\tHit Rate\t\tTotalBarcodeReads\n"
 
     for entry, values in DataDict.items():
@@ -157,6 +158,7 @@ Blat Hits with total # of Reads\tHit Rate\t\tTotalBarcodeReads\n"
         outputString += entry+"\t"
         outputString += 'BC' in keys and str(values['BC'])+"\t" or "0\t"
         outputString += 'MB' in keys and str(values['MB'])+"\t" or "0\t"
+        outputString += 'VB' in keys and str(values['VB'])+"\t" or "0\t"
         outputString += 'CU' in keys and str(values['CU'])+"\t" or "0\t"
         outputString += 'CO' in keys and str(values['CO'])+"\t" or "0\t"
         outputString += 'SC' in keys and str(values['SC'])+"\t" or "0\t"

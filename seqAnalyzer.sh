@@ -29,6 +29,7 @@ library=true
 blating=true
 sorting=true
 collapsing2=true
+maskcheck=true
 statistic=true
 
 
@@ -37,6 +38,7 @@ rThreshold=0 # read threshold after barcode splitting
 keep="F"
 itags="F"
 loop="TAGTGAAGCCACAGATGTA"
+mirSeq="GTATATTGCTGTTGACAGTGAGCG" #default 5'mirE
 ####################
 while [[ $# > 0 ]];
 do
@@ -57,6 +59,11 @@ do
         ;;
         -l|--loop)
         loop="$2"
+        shift
+        ;;
+        -m|--mirCheck)
+        mirSeq="$2"
+        shift
         ;;
         *)
         break
@@ -253,25 +260,32 @@ echo -e "LR\t${sndTotal}" >> $statFile
 
 #####
 # check for shRNA mask (sense+loop+guide [22+19+22])
+# and check for 5'mirE if set
 # in outsorted 
 # 1. in Barcode splitting
-
-for outsorted in $(cat "${workdir}_highBarcodes.txt" | gawk '{if ($2!="total"){print $2}}'); do
-    maskPos=$(gawk -v l=$loop '$0 ~ l' $outsorted | wc -l)
-    code=${outsorted#*_BC_}
-    code=${code%.fastq}
-    #echo "${outsorted} for ${code} : ${maskPos}"
-    echo -e "MB\t${code}\t${maskPos}"
-    echo -e "MB\t${code}\t${maskPos}" >> $statFile
-done
+if [[ "$maskcheck" == true ]]; then
+    echo -e "maskcheck"
+    for outsorted in $(cat "${workdir}_highBarcodes.txt" | gawk '{if ($2!="total"){print $2}}'); do
+        maskPos=$(gawk -v l=$loop '$0 ~ l' $outsorted | wc -l)
+        mirNum=$(gawk -v m=$mirSeq '$0 ~ m' $outsorted | wc -l)
+        code=${outsorted#*_BC_}
+        code=${code%.fastq}
+        #echo "${outsorted} for ${code} : ${maskPos}"
+        echo -e "MB\t${code}\t${maskPos}"
+        echo -e "MB\t${code}\t${maskPos}" >> $statFile
+        echo -e "VB\t${code}\t${mirNum}"
+        echo -e "VB\t${code}\t${mirNum}" >> $statFile
+    done
+fi
 
 # 2. in Blat hits
+
 
 ##############
 # Stat Maker #
 ##############
-if [[ $statistic == true ]]; then
-    if [[ $itags == true ]]; then
+if [[ "$statistic" == true ]]; then
+    if [[ "$itags" == true ]]; then
         ${scriptSource}statMaker.py -s "$statFile" -d "${workdir}" -e _pStat.b -c "$barcodeFile" -i
     else
         ${scriptSource}statMaker.py -s "$statFile" -d "${workdir}" -e _pStat.b -c "$barcodeFile"
