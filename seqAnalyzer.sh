@@ -108,6 +108,7 @@ fi
 ## 2.###############
 # HighBarcodes
 # paste all Files with more than $rThreshold reads in a txt file, default 100000
+# default now 0 
 wc -l ${workdir}/*BC_????????.fastq | gawk -v t=${rThreshold} '$1 > t {print $0}' > "${workdir}_highBarcodes.txt"
 
 ## 3.###############
