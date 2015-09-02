@@ -27,9 +27,9 @@ cutting=true
 collapsing=true
 library=true
 blating=true
-sorting="T"
-collapsing2="T"
-statistic="T"
+sorting=true
+collapsing2=true
+statistic=true
 
 
 #default Value init
@@ -46,14 +46,14 @@ do
         -h|--help)
         ;;
         -k|--keepData)
-        keep="T"
+        keep=true
         ;;
         -t|--threshold)
         rThreshold="$2"
         shift
         ;;
         -i|--itags)
-        itags="T"
+        itags=true
         ;;
         -l|--loop)
         loop="$2"
@@ -117,7 +117,7 @@ wc -l ${workdir}/*BC_????????.fastq | gawk -v t=${rThreshold} '$1 > t {print $0}
 highBC=$(gawk ' {if($2 !="total") print $2;}' "${workdir}_highBarcodes.txt") 
 if [[ "$cutting" == true ]]; then
     echo "Cutting ..."
-    if [[ "$itags" == "T" ]]; then
+    if [[ "$itags" == true ]]; then
         echo "Cutting for iTags!"
         ${scriptSource}seqCutOut.py -m "i" -c "$barcodeFile" $highBC
     else
@@ -140,7 +140,7 @@ if [[ "$collapsing" == true ]]; then
     ## 4a.###############
     # getItags.sh
     # set the iTags into the header
-    if [ $itags == "T" ];
+    if [ $itags == true ];
     then
         for cFile in $(ls ${workdir}*_collapsed.fasta);
         do
@@ -184,7 +184,7 @@ fi
 
 ## 6.##############
 #filter blat results
-if [[ "$sorting" == "T" ]]; then
+if [[ "$sorting" == true ]]; then
     echo "sorting ..."
     inputF=$(ls ${workdir}*_BL.pslx)
     ${scriptSource}sortBlatOutput.sh -n 10 -l "$mappingFile" $inputF
@@ -192,7 +192,7 @@ fi
 
 ## 7.#############
 #collapse Blat results again and plots graphs
-if [[ "$collapsing2" == "T" ]]; then
+if [[ "$collapsing2" == true ]]; then
     echo "collapsing2 ..."
     inputP=$(ls ${workdir}*_HF.pslx)
     ${scriptSource}collapseBlat.py -s -c "$barcodeFile" -d "$workdir" $inputP 
@@ -270,8 +270,8 @@ done
 ##############
 # Stat Maker #
 ##############
-if [[ $statistic == "T" ]]; then
-    if [[ $itags == "T" ]]; then
+if [[ $statistic == true ]]; then
+    if [[ $itags == true ]]; then
         ${scriptSource}statMaker.py -s "$statFile" -d "${workdir}" -e _pStat.b -c "$barcodeFile" -i
     else
         ${scriptSource}statMaker.py -s "$statFile" -d "${workdir}" -e _pStat.b -c "$barcodeFile"
