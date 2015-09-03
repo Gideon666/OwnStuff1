@@ -3,6 +3,7 @@
 import sys, string, os, getopt
 import datetime
 import re
+import aux1.pswm as ps
 
 """
 no longer turns the sequences arround (reverse complement)!!!!
@@ -42,9 +43,9 @@ def manage(args, optionDir):
         saveCutFasta(k, v, optionDir)
 
 
-
 ######Level Two###########
 
+#manage
 def cutOutFastq(fileFastq, optionDir):
     """
     new cutOut Function for Fasta file format
@@ -76,9 +77,33 @@ def cutOutFastq(fileFastq, optionDir):
     retElement[1] = smartCutting(fastaElements[1], startPos, endPos, optionDir)
     if(retElement[1]):
         cuttedList.extend(retElement)
-    
     return cuttedList
 
+
+#manage
+def saveCutFasta(filename, resList, optionDir):
+    """
+    """
+    oname = filename + optionDir['oFile'][0] +"."+ optionDir['oFile'][1]
+    with open(oname, 'w') as ohandle:
+        for line in resList:
+            ohandle.write(line+"\n")
+    ohandle.close()
+
+#manage
+def saveCutFastq(filename, reslist, optionDir):
+    """
+    """
+    oname = filename + optionDir['oFile'][0] +"."+ optionDir['oFile'][1]
+
+    ohandle = open(oname, 'w')
+    for line in reslist:
+        ohandle.write(line+"\n")
+    ohandle.close()
+
+####Level three#######################
+
+#cutOutFastq
 def smartCutting(seq, startPos, endPos, optionDir):
     """
     """
@@ -87,14 +112,24 @@ def smartCutting(seq, startPos, endPos, optionDir):
     retSeq = ""
     mLen = optionDir['minLength']
     loop = "TAGTGAAGCCACAGATGTA"
-    looP = re.compile(loop)
-    reL = looP.search(seq)
-    if(reL):
-        retSeq = seq[reL.start()-lS:reL.end()+rS]
+
+    if optionDir['loopMM'] < 1:
+        retSeq = regExLoop(seq, loop, startPos, endPos)
     else:
-        retSeq = seq[startPos:endPos]
+        retSeq = pswmLoop(seq, loop, startPos, endPos)
+    ####    
+    #looP = re.compile(loop)
+    #reL = looP.search(seq)
+    #if(reL):
+    #    retSeq = seq[reL.start()-lS:reL.end()+rS]
+    #else:
+    #    retSeq = seq[startPos:endPos]
+    ####
+
     if(len(retSeq) < mLen):
         return None
+
+    ####itags
     if(optionDir['mode'] == 'I'):
         iTagId = re.compile("GAATT")
         reO = iTagId.search(seq[-20:])
@@ -112,26 +147,34 @@ def smartCutting(seq, startPos, endPos, optionDir):
         retSeq+=iTag
     return retSeq
 
-def saveCutFasta(filename, resList, optionDir):
-    """
-    """
-    oname = filename + optionDir['oFile'][0] +"."+ optionDir['oFile'][1]
-    with open(oname, 'w') as ohandle:
-        for line in resList:
-            ohandle.write(line+"\n")
-    ohandle.close()
+####Aux##############
 
-def saveCutFastq(filename, reslist, optionDir):
+def pswmLoop(seq, loop, startPos, endPos):
     """
     """
-    oname = filename + optionDir['oFile'][0] +"."+ optionDir['oFile'][1]
+    minScore = len(loop) - optionDir['loopMM']
+    lS = 22
+    rS = 22
+    minScore = 18.0
+    ps.PSWM([loop])
+    sliceList = slwApproach(seq, len(loop))
+    for pos in xrange(len(sliceList)):
+        if sliceList[pos].getScore() >= minScore:
+            return seq[pos-lS:pos+len(loop)+rS]
+    return seq[startPos:endPos]
 
-    ohandle = open(oname, 'w')
-    for line in reslist:
-        ohandle.write(line+"\n")
-    ohandle.close()
-
-####Level three#######################
+def regExLoop(seq, loop, startPos, endPos):
+    """
+    """
+    lS=22
+    rS=22
+    looP = re.compile(loop)
+    reL = looP.search(seq)
+    if(reL):
+        retSeq = seq[reL.start()-lS:reL.end()+rS]
+    else:
+        retSeq = seq[startPos:endPos]
+    return retSeq
 
 def reverseComplement(seq):
         """ 
@@ -181,7 +224,7 @@ def setDefaultValues():
     ValueDir = {\
                 'oFile': ['_cutout','fasta'],\
                 'mode': "N",\
-                'minLength' : 63,\
+                'loopMM': 2,\
                 'startCutout' : 34,\
                 'endCutout' : 97\
                }
@@ -193,13 +236,13 @@ def main():
     optionDir = setDefaultValues()
     try:
         opts, args = getopt.getopt(sys.argv[1:],\
-                "h, o:, m:, c:",\
-                ["help", "output=", "mode=", "configFile="])
+                "h, o:, m:, c:, l:",\
+                ["help", "output=", "mode=", "configFile=",\
+                 "loopMissMatches="])
     except getopt.Error, msg:
         sys.stdout.write(msg + "\n")
         sys.stdout.write("For help, use -h!\n")
         sys.exit(-1)
-
     for o, a in opts:
         if o in ['-h', '--help']:
             print __doc__
@@ -214,6 +257,8 @@ def main():
                 optionDir['mode'] = mode
         if o in ['-c', '--configFile']:
             optionDir['configFile'] = string.strip(a)
+        if o in ['-l', '--loopMissMatches']:
+            optionDir['loopMM'] = string.atoi(string.strip(a))
 
     args, optionDir = processArgs(args, optionDir)
     manage(args, optionDir)

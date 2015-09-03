@@ -22,7 +22,7 @@
 ##
 
 #debugSwitches:
-trimming=true
+trimming=false
 cutting=true
 collapsing=true
 library=true
@@ -312,7 +312,7 @@ cp "$statFile" "${absdest}/Stats.txt"
 cp "${workdir}"*.tsv "${absdest}/"
 cp "${workdir}"*.h5 "${absdest}/"
 
-if [ "$keep" != "T" ];
+if [[ "$keep" != true ]];
 then
     rm -r $workdir
 fi
