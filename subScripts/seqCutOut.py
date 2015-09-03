@@ -156,12 +156,33 @@ def pswmLoop(seq, loop, startPos, endPos):
     lS = 22
     rS = 22
     minScore = 18.0
-    ps.PSWM([loop])
+    loopmask = ps.PSWM([loop])
     sliceList = slwApproach(seq, len(loop))
     for pos in xrange(len(sliceList)):
-        if sliceList[pos].getScore() >= minScore:
+        if loopmask.getScore(sliceList[pos]) >= minScore:
+            #if len(seq[pos-lS:pos+len(loop)+rS]) == 63:
+                #print loopmask.getScore(sliceList[pos])
+                #print seq 
+                #print len(seq)
+                #print seq[pos-lS:pos+len(loop)+rS]
+                #print len(seq[pos-lS:pos+len(loop)+rS])
             return seq[pos-lS:pos+len(loop)+rS]
     return seq[startPos:endPos]
+
+#pswmLoop
+def slwApproach(seq, size, hard=True):
+    """
+    sliding window approach for strings
+    """
+    retList = []
+    if hard:
+        for i in xrange(len(seq)-size+1):
+            retList.append(seq[i:i+size])
+    else:
+        pass
+    return retList
+
+
 
 def regExLoop(seq, loop, startPos, endPos):
     """
@@ -225,6 +246,7 @@ def setDefaultValues():
                 'oFile': ['_cutout','fasta'],\
                 'mode': "N",\
                 'loopMM': 2,\
+                'minLength':63,\
                 'startCutout' : 34,\
                 'endCutout' : 97\
                }
@@ -233,6 +255,7 @@ def setDefaultValues():
 #######Main#######
 
 def main():
+    global optionDir
     optionDir = setDefaultValues()
     try:
         opts, args = getopt.getopt(sys.argv[1:],\
