@@ -22,7 +22,7 @@
     -s, --silent        :silent mode, default verbose
     -a, --automatic     :called from script don't use it.
     -c, --configFile    :automatic initializing of options from configFile
-    -d,
+    -d, --destination   :destination folder for output
 """
 
 import sys, string, os, getopt, re
@@ -103,31 +103,24 @@ def saveBarcodedFastQ(fastqDict, optionDir):
 def readFastq(fastqFile, optionDir):
     """
     """
-    #print("hi")
     ihandle = open(fastqFile, 'r')
-    #ibuffer = ihandle.readlines()
     trimBufferDict = {}
     BarcodeDict = {}
     statDict = {}	
     item = [None]*4
-    #print ibuffer[0]
     item[0] = string.strip(ihandle.readline())
-    #print item[0]
     counter = 1
     trimBufferDict['_OUT_'] = []
 
     for line in ihandle:
-        #print line
-        #break
         if line.startswith("@M01950"):
-            #print item
             trimmedItem = trimItem(item, optionDir)
             #if trimmedItem[0] not in optionDir['barcodes']:
             #    print trimmedItem[0]
             if trimmedItem[0] == None:
                 trimBufferDict['_OUT_'].extend(trimmedItem[1])
                 counter = 0
-                item = [None] *4
+                item = [None] * 4
                 item[counter] = string.strip(line)
                 counter += 1
                 continue
@@ -212,7 +205,6 @@ def trimItem(item, optionDir, trimNumber = 24, barcodeNumber = 8):
             retItem[3] = item[3][:trimNumber]
             Barcode = "Set"
             #sys.stdout.write("EM-Pattern 2\n")
-
     Barcode2 = reverseComplement(retItem[1][-8:])
     retItem[1] = reverseComplement(retItem[1])
     retItem[3] = retItem[3][::-1]
@@ -245,9 +237,7 @@ def trimItem(item, optionDir, trimNumber = 24, barcodeNumber = 8):
                     #print Barcode in optionDir['barcodes']
                     #print "----"
                     return Barcode, retItem
-    #else:
     return None, item
-    #return Barcode, retItem
     
 ######Level three####################
 
@@ -325,7 +315,7 @@ def readConfig(optionDir):
     """
     # comments
     @ special information
-    @Header SampleNum   Barcode PoolId  Description     Groups(x to ignore)
+    @ Header SampleNum   Barcode PoolId  Description     Groups(x to ignore)
     """
     commands = {}
     barcodes = {}
@@ -384,7 +374,6 @@ def main():
             optionDir['barcodeFile'] = string.strip(a)
         if o in ['-a', '--adapter']:
             optionDir['adapter'] = string.strip(a)
-            #optionDir['adapterMinLen'] = 12
         if o in ['-s', '--silent']:
             #print "set silent mode?"
             optionDir['verbose'] = False

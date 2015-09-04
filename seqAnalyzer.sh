@@ -22,7 +22,7 @@
 ##
 
 #debugSwitches:
-trimming=false
+trimming=true
 cutting=true
 collapsing=true
 library=true
@@ -147,7 +147,7 @@ if [[ "$collapsing" == true ]]; then
     ## 4a.###############
     # getItags.sh
     # set the iTags into the header
-    if [ $itags == true ];
+    if [[ "$itags" == true ]];
     then
         for cFile in $(ls ${workdir}*_collapsed.fasta);
         do

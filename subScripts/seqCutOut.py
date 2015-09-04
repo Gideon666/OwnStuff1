@@ -112,11 +112,14 @@ def smartCutting(seq, startPos, endPos, optionDir):
     retSeq = ""
     mLen = optionDir['minLength']
     loop = "TAGTGAAGCCACAGATGTA"
-
+    
     if optionDir['loopMM'] < 1:
         retSeq = regExLoop(seq, loop, startPos, endPos)
     else:
         retSeq = pswmLoop(seq, loop, startPos, endPos)
+
+    if optionDir['maskLoop']:
+        retSeq = retSeq[:lS]+loop+retSeq[lS+loop:]
     ####    
     #looP = re.compile(loop)
     #reL = looP.search(seq)
@@ -149,6 +152,7 @@ def smartCutting(seq, startPos, endPos, optionDir):
 
 ####Aux##############
 
+#smartCutting
 def pswmLoop(seq, loop, startPos, endPos):
     """
     """
@@ -182,8 +186,7 @@ def slwApproach(seq, size, hard=True):
         pass
     return retList
 
-
-
+#smartCutting
 def regExLoop(seq, loop, startPos, endPos):
     """
     """
@@ -194,8 +197,16 @@ def regExLoop(seq, loop, startPos, endPos):
     if(reL):
         retSeq = seq[reL.start()-lS:reL.end()+rS]
     else:
-        retSeq = seq[startPos:endPos]
+        if optionDir['maskLoop']:
+            nonMasked = seq[startPos:endPos]
+            retSeq = retSeq[:lS]+loop+retSeq[lS+len(loop):]
+            print "-Mask--"
+            print nonMasked
+            print retSeq
+        else:    
+            retSeq = seq[startPos:endPos]
     return retSeq
+
 
 def reverseComplement(seq):
         """ 
@@ -245,6 +256,7 @@ def setDefaultValues():
     ValueDir = {\
                 'oFile': ['_cutout','fasta'],\
                 'mode': "N",\
+                'maskLoop': False,\
                 'loopMM': 2,\
                 'minLength':63,\
                 'startCutout' : 34,\
@@ -259,9 +271,9 @@ def main():
     optionDir = setDefaultValues()
     try:
         opts, args = getopt.getopt(sys.argv[1:],\
-                "h, o:, m:, c:, l:",\
+                "h, o:, m:, c:, l:, a",\
                 ["help", "output=", "mode=", "configFile=",\
-                 "loopMissMatches="])
+                 "loopMissMatches=", "maskLoop"])
     except getopt.Error, msg:
         sys.stdout.write(msg + "\n")
         sys.stdout.write("For help, use -h!\n")
@@ -282,6 +294,8 @@ def main():
             optionDir['configFile'] = string.strip(a)
         if o in ['-l', '--loopMissMatches']:
             optionDir['loopMM'] = string.atoi(string.strip(a))
+        if o in ['-a', '--maskLoop']:
+            optionDir['maskLoop'] = True
 
     args, optionDir = processArgs(args, optionDir)
     manage(args, optionDir)
