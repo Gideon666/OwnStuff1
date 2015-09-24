@@ -27,6 +27,7 @@
 
 import sys, string, os, getopt, re
 import datetime
+import pdb
 ######Level One##########
 
 def processArgs(args, optionDir):
@@ -102,54 +103,54 @@ def saveBarcodedFastQ(fastqDict, optionDir):
 def readFastq(fastqFile, optionDir):
     """
     """
-    ihandle = open(fastqFile, 'r')
     trimBufferDict = {}
     BarcodeDict = {}
     statDict = {}	
     item = [None]*4
-    item[0] = string.strip(ihandle.readline())
     counter = 1
     trimBufferDict['_OUT_'] = []
+    with open(fastqFile, 'r') as ihandle:
+        item[0] = string.strip(ihandle.readline())
 
-    for line in ihandle:
-        if line.startswith("@M01950"):
-            trimmedItem = trimItem(item, optionDir)
+        for line in ihandle:
+            if line.startswith("@M01950"):
+                trimmedItem = trimItem(item, optionDir)
             #if trimmedItem[0] not in optionDir['barcodes']:
             #    print trimmedItem[0]
-            if trimmedItem[0] == None:
-                trimBufferDict['_OUT_'].extend(trimmedItem[1])
+                if trimmedItem[0] == None:
+                    trimBufferDict['_OUT_'].extend(trimmedItem[1])
+                    counter = 0
+                    item = [None] * 4
+                    item[counter] = string.strip(line)
+                    counter += 1
+                    continue
+                if trimBufferDict.has_key(trimmedItem[0]):
+                    trimBufferDict[trimmedItem[0]].extend(trimmedItem[1])
+                    statDict[trimmedItem[0]] += 1
+                else:
+                    #print "Key :"+str(trimmedItem[0])
+                    trimBufferDict[trimmedItem[0]] = []
+                    trimBufferDict[trimmedItem[0]].extend(trimmedItem[1])
+                    statDict[trimmedItem[0]] = 1
                 counter = 0
-                item = [None] * 4
-                item[counter] = string.strip(line)
-                counter += 1
-                continue
+                item = [None]*4
+            item[counter] = string.strip(line)
+            counter += 1
+    
+        trimmedItem = trimItem(item, optionDir)
+        if trimmedItem[0] == None:
+            trimBufferDict['_OUT_'].extend(trimmedItem[1])
+            counter = 0
+            item = [None] *4
+        else:
             if trimBufferDict.has_key(trimmedItem[0]):
                 trimBufferDict[trimmedItem[0]].extend(trimmedItem[1])
                 statDict[trimmedItem[0]] += 1
             else:
-                #print "Key :"+str(trimmedItem[0])
                 trimBufferDict[trimmedItem[0]] = []
                 trimBufferDict[trimmedItem[0]].extend(trimmedItem[1])
                 statDict[trimmedItem[0]] = 1
-            counter = 0
-            item = [None]*4
-        item[counter] = string.strip(line)
-        counter += 1
-    
-    trimmedItem = trimItem(item, optionDir)
-    if trimmedItem[0] == None:
-        trimBufferDict['_OUT_'].extend(trimmedItem[1])
-        counter = 0
-        item = [None] *4
-    else:
-        if trimBufferDict.has_key(trimmedItem[0]):
-            trimBufferDict[trimmedItem[0]].extend(trimmedItem[1])
-            statDict[trimmedItem[0]] += 1
-        else:
-            trimBufferDict[trimmedItem[0]] = []
-            trimBufferDict[trimmedItem[0]].extend(trimmedItem[1])
-            statDict[trimmedItem[0]] = 1
-    ihandle.close()
+    ##### read in terminated! #####
     if optionDir['verbose']:
         sys.stdout.write("------------\n")
         for k, v in trimBufferDict.items():
@@ -165,9 +166,8 @@ def trimItem(item, optionDir, trimNumber = 24, barcodeNumber = 8):
     if "adapter" in optionDir.keys():
         adapterSeq = string.strip(optionDir['adapter'])
         patSet = optionDir['precompiledSet']
-        #sys.stdout.write("Adapter Found! : length : {0}\n".format(len(patSet)))
     else:
-        #adapterSeq = "AATATACTG"
+        # adapterSeq = "AATATACTG"
         # mir30 + spacer TG
         # adapterSeq = "ATCTCGTATGCCGTCTTCTGCTTG"
         # careful adjust trimNumber accordingly
@@ -188,6 +188,9 @@ def trimItem(item, optionDir, trimNumber = 24, barcodeNumber = 8):
             retItem[3] = item[3][:trimNumber]
             Barcode = "Set"
             #sys.stdout.write("Pattern 1\n")
+            #sys.stdout.write("Before Trimming:\n{0}\n".format(item))
+            #sys.stdout.write("After Trimming:\n{0}\n".format(retItem))
+            #sys.exit()
             break
     if(not(Barcode)):
         emPattern1 = re.compile(emPatSet[0])
@@ -212,9 +215,9 @@ def trimItem(item, optionDir, trimNumber = 24, barcodeNumber = 8):
     item[3] = item[3][::-1]
     if Barcode:
         Barcode = retItem[1][:8]
-        #Barcode2 = reverseComplement(retItem[1][-8:])
-        #Debugger
-        #if (Barcode2 != Barcode):
+        # Barcode2 = reverseComplement(retItem[1][-8:])
+        # Debugger
+        # if (Barcode2 != Barcode):
         #    print "------------"
         #    print retItem
         #    print "Barcode: "+Barcode
@@ -260,7 +263,6 @@ def reverseComplement(seq):
         retSeq += swDict[i]
     return retSeq
 
-
 def sameKey(cKey, keys2Check):
     """
     """
@@ -271,7 +273,6 @@ def sameKey(cKey, keys2Check):
         if 1 < len(nCheck.findall(cKey)):
             return None #cKey
         else:
-            
             arepl = nCheck.sub("A", cKey)
             grepl = nCheck.sub("G", cKey)
             crepl = nCheck.sub("C", cKey)
