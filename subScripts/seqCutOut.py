@@ -88,36 +88,39 @@ def saveCutFasta(filename, resList, optionDir):
     with open(oname, 'w') as ohandle:
         for line in resList:
             ohandle.write(line+"\n")
-    ohandle.close()
 
 #manage
 def saveCutFastq(filename, reslist, optionDir):
     """
     """
     oname = filename + optionDir['oFile'][0] +"."+ optionDir['oFile'][1]
-
-    ohandle = open(oname, 'w')
-    for line in reslist:
-        ohandle.write(line+"\n")
-    ohandle.close()
+    with open(oname, 'w') ohandle:
+        for line in reslist:
+            ohandle.write(line+"\n")
 
 ####Level three#######################
 
 #cutOutFastq
 def smartCutting(seq, startPos, endPos, optionDir):
     """
+    smartCutting matches the loop to the seq and 
+    cuts left and right.
+    The borders are hard (+22bp left and right)
+    if allowed mismatches: pswms are used for the
+    matching. Otherwise RegEx!
+
+    For itags the itag is cutted from the end and
+    ligate it again to the cutted sequences.
     """
     lS=22
     rS=22
     retSeq = ""
     mLen = optionDir['minLength']
     loop = "TAGTGAAGCCACAGATGTA"
-    
     if optionDir['loopMM'] < 1:
         retSeq = regExLoop(seq, loop, startPos, endPos)
     else:
         retSeq = pswmLoop(seq, loop, startPos, endPos)
-
     if optionDir['maskLoop']:
         retSeq = retSeq[:lS]+loop+retSeq[lS+loop:]
     ####    
@@ -128,10 +131,8 @@ def smartCutting(seq, startPos, endPos, optionDir):
     #else:
     #    retSeq = seq[startPos:endPos]
     ####
-
     if(len(retSeq) < mLen):
         return None
-
     ####itags
     if(optionDir['mode'] == 'I'):
         iTagId = re.compile("GAATT")
@@ -206,7 +207,6 @@ def regExLoop(seq, loop, startPos, endPos):
         else:    
             retSeq = seq[startPos:endPos]
     return retSeq
-
 
 def reverseComplement(seq):
         """ 
