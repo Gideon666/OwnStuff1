@@ -99,7 +99,6 @@ def saveBarcodedFastQ(fastqDict, optionDir):
                     ohandle.write(line+"\n")
         ohandle.close()
 
-
 def readFastq(fastqFile, optionDir):
     """
     """
@@ -160,6 +159,7 @@ def readFastq(fastqFile, optionDir):
 def trimItem(item, optionDir, trimNumber = 24, barcodeNumber = 8):
     """
     """
+               #              2+Spacer:Barcode:+4
     emPatSet = ['ACAGCAATATACTG','ACTG[\w]{8}ATCT']
 
     if "adapter" in optionDir.keys():
@@ -341,7 +341,7 @@ def setDefaultValues():
                 'oFile': ['temp','txt'],\
                 'verbose': True,\
                 'adapter': 'ATCTCGTATGCCGTCTTCTGCTTG',\
-                'adapterMinLen' : 12}
+                'adapterMinLen' : 10}
     return ValueDir
 
 #######Main#######
