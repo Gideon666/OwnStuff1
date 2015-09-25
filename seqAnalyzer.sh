@@ -34,7 +34,7 @@ statistic=true
 
 
 #default Value init
-rThreshold=0 # read threshold after barcode splitting 
+rThreshold=1000 # read threshold after barcode splitting 
 keep="F"
 itags="F"
 loop="TAGTGAAGCCACAGATGTA"

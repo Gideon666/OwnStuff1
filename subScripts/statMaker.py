@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 
+"""
+statmaker called from SeqAnalyzer.sh
+
+usage:
+    ./statMaker.py [options] -s statFile -e _pStat.b -c barcodeFile
+"""
 
 import sys, string, os, getopt
 import datetime
@@ -14,8 +20,6 @@ import operator
 from os import walk
 import math
 
-"""
-"""
 ######Level One##########
 
 def manage(args, optionDir):
@@ -67,16 +71,22 @@ def structStats(statDict):
     BarcodeDict = {}
     TotalInfo = {}
     turn2Number = lambda x : string.atoi(x)
+    #### Twofields
     for info in twoFieldKeys:
-        for BarcodeList in statDict[info]:
-            if BarcodeList[0] in BarcodeDict.keys():
-                BarcodeDict[BarcodeList[0]][info] = string.atoi(BarcodeList[1])
-            else:
-                BarcodeDict[BarcodeList[0]] = {}
-                BarcodeDict[BarcodeList[0]][info] = string.atoi(BarcodeList[1])
+        try:
+            for BarcodeList in statDict[info]:
+                if BarcodeList[0] in BarcodeDict.keys():
+                    BarcodeDict[BarcodeList[0]][info] = string.atoi(BarcodeList[1])
+                else:
+                    BarcodeDict[BarcodeList[0]] = {}
+                    BarcodeDict[BarcodeList[0]][info] = string.atoi(BarcodeList[1])
+        except KeyError:
+            sys.stderr.write("KeyError!\n")
+            sys.exit(-1)
+    #### Onefields
     for tInfo in oneFieldKeys:
         TotalInfo[tInfo] = string.atoi(statDict[tInfo][0][0])
-
+    #### Threefields
     for multipleInfo in threeFieldKeys:
         for BarcodeList in statDict[multipleInfo]:
             if BarcodeList[0] in BarcodeDict.keys():

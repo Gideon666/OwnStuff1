@@ -1,10 +1,4 @@
 #!/usr/bin/env python
-
-import sys, string, os, getopt
-import datetime
-import re
-import aux1.pswm as ps
-
 """
 no longer turns the sequences arround (reverse complement)!!!!
 necessary to have the same startpoint (barcode?)
@@ -18,6 +12,13 @@ options:
     -m --mode: possible modes   n= normal
                                 i= iTags
 """
+
+import sys, string, os, getopt
+import datetime
+import re
+import aux1.pswm as ps
+import pdb
+
 ######Level One##########
 
 def processArgs(args, optionDir):
@@ -34,6 +35,7 @@ def processArgs(args, optionDir):
 def manage(args, optionDir):
     """
     """
+    #pdb.set_trace()
     resDict = {} 
     for a in args:
         resDict[string.split(a, sep=".")[0]] = cutOutFastq(a, optionDir)
@@ -79,7 +81,6 @@ def cutOutFastq(fileFastq, optionDir):
         cuttedList.extend(retElement)
     return cuttedList
 
-
 #manage
 def saveCutFasta(filename, resList, optionDir):
     """
@@ -94,7 +95,7 @@ def saveCutFastq(filename, reslist, optionDir):
     """
     """
     oname = filename + optionDir['oFile'][0] +"."+ optionDir['oFile'][1]
-    with open(oname, 'w') ohandle:
+    with open(oname, 'w') as ohandle:
         for line in reslist:
             ohandle.write(line+"\n")
 
@@ -106,11 +107,14 @@ def smartCutting(seq, startPos, endPos, optionDir):
     smartCutting matches the loop to the seq and 
     cuts left and right.
     The borders are hard (+22bp left and right)
-    if allowed mismatches: pswms are used for the
+    If allowed mismatches: pswms are used for the
     matching. Otherwise RegEx!
 
     For itags the itag is cutted from the end and
-    ligate it again to the cutted sequences.
+    glued after cutting again to the sequences.
+
+    If maskLoop is set the found loop is exchanged
+    with the sequence for a perfect loop.
     """
     lS=22
     rS=22
@@ -123,13 +127,6 @@ def smartCutting(seq, startPos, endPos, optionDir):
         retSeq = pswmLoop(seq, loop, startPos, endPos)
     if optionDir['maskLoop']:
         retSeq = retSeq[:lS]+loop+retSeq[lS+loop:]
-    ####    
-    #looP = re.compile(loop)
-    #reL = looP.search(seq)
-    #if(reL):
-    #    retSeq = seq[reL.start()-lS:reL.end()+rS]
-    #else:
-    #    retSeq = seq[startPos:endPos]
     ####
     if(len(retSeq) < mLen):
         return None
@@ -260,7 +257,8 @@ def setDefaultValues():
                 'loopMM': 2,\
                 'minLength':63,\
                 'startCutout' : 34,\
-                'endCutout' : 97\
+                'endCutout' : 97,\
+                'gabIns' : 0\
                }
     return ValueDir
 
@@ -271,9 +269,9 @@ def main():
     optionDir = setDefaultValues()
     try:
         opts, args = getopt.getopt(sys.argv[1:],\
-                "h, o:, m:, c:, l:, a",\
+                "h, o:, m:, c:, l:, a, g",\
                 ["help", "output=", "mode=", "configFile=",\
-                 "loopMissMatches=", "maskLoop"])
+                 "loopMissMatches=", "maskLoop", "gabIns="])
     except getopt.Error, msg:
         sys.stdout.write(msg + "\n")
         sys.stdout.write("For help, use -h!\n")
@@ -296,6 +294,9 @@ def main():
             optionDir['loopMM'] = string.atoi(string.strip(a))
         if o in ['-a', '--maskLoop']:
             optionDir['maskLoop'] = True
+        if o in ['-g', '--gabIns']:
+            optionDir['gabIns'] = string.stoi(string.strip(a))
+
 
     args, optionDir = processArgs(args, optionDir)
     manage(args, optionDir)
