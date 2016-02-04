@@ -19,12 +19,14 @@ import pickle
 import operator
 from os import walk
 import math
+import pdb
 
 ######Level One##########
 
 def manage(args, optionDir):
     """
     """
+    #pdb.set_trace()
     calcStats(args, optionDir)
 
 def processArgs(args, optionDir):
@@ -543,6 +545,7 @@ def groupPlot(optionDir):
 def prepareShReadData(blatResDict, optionDir):
     """
     """
+
     getReadNumber = lambda x : string.atoi(string.split(x[9], sep="-")[1])
     getiTagName = lambda x : string.split(x[13], sep="-")[0]+"-"+string.split(x[9], sep="-")[2]
     getName = lambda x : string.split(x[13], sep="-")[0]
@@ -551,9 +554,13 @@ def prepareShReadData(blatResDict, optionDir):
         pool = {}
         if optionDir['iTags']:
             for entry in v.values():
-                number = getReadNumber(entry)
-                name = getiTagName(entry)
-                pool[name] = number
+                try:
+                    number = getReadNumber(entry)
+                    name = getiTagName(entry)
+                    pool[name] = number
+                except IndexError:
+                    sys.stderr.write("IndexError in prepareShReadData\
+                            for {1} : {0}\n".format(entry))
         else:
             for entry in v.values():
                 number = getReadNumber(entry)

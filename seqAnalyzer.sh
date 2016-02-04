@@ -22,8 +22,8 @@
 ##
 
 #debugSwitches:
-trimming=true
-cutting=true
+trimming=false
+cutting=false
 collapsing=true
 library=true
 blating=true
@@ -34,7 +34,9 @@ statistic=true
 
 
 #default Value init
-rThreshold=1000 # read threshold after barcode splitting 
+rThreshold=1000 # read threshold after barcode splitting
+mmLoop=2
+gapsLoop=2
 keep="F"
 itags="F"
 loop="TAGTGAAGCCACAGATGTA"
@@ -52,6 +54,14 @@ do
         ;;
         -t|--threshold)
         rThreshold="$2"
+        shift
+        ;;
+        -s|--missmatchLoop)
+        mmLoop="$2"
+        shift
+        ;;
+        -a|--gapsLoop)
+        gapsLoop="$2"
         shift
         ;;
         -i|--itags)
@@ -123,13 +133,13 @@ wc -l ${workdir}/*BC_????????.fastq | gawk -v t=${rThreshold} '$1 > t {print $0}
 # guide loop target cutout of highest barcodes
 highBC=$(gawk ' {if($2 !="total") print $2;}' "${workdir}_highBarcodes.txt") 
 if [[ "$cutting" == true ]]; then
-    echo "Cutting ..."
+    echo "Cutting ...${gapsLoop}!!"
     if [[ "$itags" == true ]]; then
         echo "Cutting for iTags!"
-        ${scriptSource}seqCutOut.py -m "i" -c "$barcodeFile" $highBC
+        ${scriptSource}seqCutOut.py -m "i" -g "$gapsLoop" -c "$barcodeFile" $highBC
     else
         echo "Cutting without iTags!"
-        ${scriptSource}seqCutOut.py -c "$barcodeFile" $highBC
+        ${scriptSource}seqCutOut.py -g "$gapsLoop" -c "$barcodeFile" $highBC
     fi
 fi
 

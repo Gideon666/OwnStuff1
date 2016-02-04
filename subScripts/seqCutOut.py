@@ -5,7 +5,8 @@ necessary to have the same startpoint (barcode?)
 
 does not cut the quality string!
 now produce fasta instead of fastq
-
+Needs the new regex module instead of the simple re for
+fuzzy pattern matching!
 
 usage: seqCutout.py [options] inputFiles
 options:
@@ -15,8 +16,9 @@ options:
 
 import sys, string, os, getopt
 import datetime
-import re
+import regex
 import aux1.pswm as ps
+import re
 import pdb
 
 ######Level One##########
@@ -39,7 +41,6 @@ def manage(args, optionDir):
     resDict = {} 
     for a in args:
         resDict[string.split(a, sep=".")[0]] = cutOutFastq(a, optionDir)
-
     for k, v in resDict.items():
         #saveCutFastq(k, v, optionDir)
         saveCutFasta(k, v, optionDir)
@@ -111,7 +112,7 @@ def smartCutting(seq, startPos, endPos, optionDir):
     matching. Otherwise RegEx!
 
     For itags the itag is cutted from the end and
-    glued after cutting again to the sequences.
+    glued back on, after cutting.
 
     If maskLoop is set the found loop is exchanged
     with the sequence for a perfect loop.
@@ -121,7 +122,7 @@ def smartCutting(seq, startPos, endPos, optionDir):
     retSeq = ""
     mLen = optionDir['minLength']
     loop = "TAGTGAAGCCACAGATGTA"
-    if optionDir['loopMM'] < 1:
+    if (optionDir['gabIns'] != 0):
         retSeq = regExLoop(seq, loop, startPos, endPos)
     else:
         retSeq = pswmLoop(seq, loop, startPos, endPos)
@@ -190,7 +191,8 @@ def regExLoop(seq, loop, startPos, endPos):
     """
     lS=22
     rS=22
-    looP = re.compile(loop)
+    inDels = optionDir['gabIns']
+    looP = re.compile(r'(?:{0}){{e<={1}}}'.format(loop, inDels))
     reL = looP.search(seq)
     if(reL):
         retSeq = seq[reL.start()-lS:reL.end()+rS]
@@ -269,7 +271,7 @@ def main():
     optionDir = setDefaultValues()
     try:
         opts, args = getopt.getopt(sys.argv[1:],\
-                "h, o:, m:, c:, l:, a, g",\
+                "h, o:, m:, c:, l:, a, g:",\
                 ["help", "output=", "mode=", "configFile=",\
                  "loopMissMatches=", "maskLoop", "gabIns="])
     except getopt.Error, msg:
@@ -295,7 +297,8 @@ def main():
         if o in ['-a', '--maskLoop']:
             optionDir['maskLoop'] = True
         if o in ['-g', '--gabIns']:
-            optionDir['gabIns'] = string.stoi(string.strip(a))
+            print "gabs:"+str(a)
+            optionDir['gabIns'] = string.atoi(string.strip(a))
 
 
     args, optionDir = processArgs(args, optionDir)
