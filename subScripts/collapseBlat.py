@@ -166,6 +166,7 @@ def collapse(ifile, optionDir):
 def readConfig(file):
     """
     """
+    print "Configfile: "+file
     #sys.stdout.write('Reading configuration File {}\n'.format(file))
     retDict = {}
     with open(file, 'r') as ihandle:
@@ -173,6 +174,7 @@ def readConfig(file):
             if (line.startswith('#') or line.startswith("@")):
                 continue
             atoms = string.split(string.strip(line), sep="\t")
+            print atoms
             retDict[atoms[1]] = atoms
     return retDict
 

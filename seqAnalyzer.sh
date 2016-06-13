@@ -22,8 +22,8 @@
 ##
 
 #debugSwitches:
-trimming=false
-cutting=false
+trimming=true
+cutting=true
 collapsing=true
 library=true
 blating=true
@@ -45,7 +45,6 @@ mirSeq="GTATATTGCTGTTGACAGTGAGCG" #default 5'mirE
 while [[ $# > 0 ]];
 do
     key="$1"
-        
     case $key in
         -h|--help)
         ;;
@@ -101,7 +100,7 @@ absdest=$(readlink -e $(dirname "$destination"))
 absdest="${absdest}/$(basename "${destination}")"
 echo -e "Absolute d.  =\t${absdest}"
 #workdir="/tmp/seqAnalyzer_$$/"
-workdir="/tmp/seqAnalyzer_15000/"
+workdir="/Data/PipeTMP/seqAnalyzer_15000/"
 mkdir -p $workdir
 statFile=${workdir}Stats.txt
 echo -e "#${1}\t${2}\t${3}\t${4}" > $statFile

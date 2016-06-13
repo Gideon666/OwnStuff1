@@ -25,7 +25,7 @@
     -d, --destination   :destination folder for output
 """
 
-import sys, string, os, getopt, re
+import sys, string, os, getopt, re, shelve
 import datetime
 import pdb
 ######Level One##########
@@ -77,6 +77,8 @@ def manage(args, optionDir):
     for a in args:
         buffer1 = readFastq(a, optionDir)
     saveBarcodedFastQ(buffer1[0], optionDir)
+    #close shelve
+    buffer1[0].close()
     return args, optionDir
 
 ######Level Two##########
@@ -103,7 +105,8 @@ def saveBarcodedFastQ(fastqDict, optionDir):
 def readFastq(fastqFile, optionDir):
     """
     """
-    trimBufferDict = {}
+    trimBufferDict = shelve.open("trimBufferDict", writeback=True)
+    #trimBufferDict = {}
     BarcodeDict = {}
     statDict = {}	
     item = [None]*4
@@ -113,7 +116,8 @@ def readFastq(fastqFile, optionDir):
         item[0] = string.strip(ihandle.readline())
 
         for line in ihandle:
-            if line.startswith("@M01950"):
+            #if line.startswith("@M01950"):
+            if line.startswith("@ST-K00207"):
                 trimmedItem = trimItem(item, optionDir)
             #if trimmedItem[0] not in optionDir['barcodes']:
             #    print trimmedItem[0]
@@ -128,7 +132,7 @@ def readFastq(fastqFile, optionDir):
                     trimBufferDict[trimmedItem[0]].extend(trimmedItem[1])
                     statDict[trimmedItem[0]] += 1
                 else:
-                    #print "Key :"+str(trimmedItem[0])
+                    print "Key :"+str(trimmedItem[0])
                     trimBufferDict[trimmedItem[0]] = []
                     trimBufferDict[trimmedItem[0]].extend(trimmedItem[1])
                     statDict[trimmedItem[0]] = 1
