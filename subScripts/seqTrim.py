@@ -106,6 +106,7 @@ def readFastq(fastqFile, optionDir):
     """
     """
     trimBufferDict = shelve.open("trimBufferDict", writeback=True)
+    trimBufferKeys = []
     #trimBufferDict = {}
     BarcodeDict = {}
     statDict = {}	
@@ -128,13 +129,25 @@ def readFastq(fastqFile, optionDir):
                     item[counter] = string.strip(line)
                     counter += 1
                     continue
-                if trimBufferDict.has_key(trimmedItem[0]):
-                    trimBufferDict[trimmedItem[0]].extend(trimmedItem[1])
+                # change from normal directory to shelve
+                #if trimBufferDict.has_key(trimmedItem[0]):
+                #    trimBufferDict[trimmedItem[0]].extend(trimmedItem[1])
+                #    statDict[trimmedItem[0]] += 1
+                #else:
+                #    print "Key :"+str(trimmedItem[0])
+                #    trimBufferDict[trimmedItem[0]] = []
+                #    trimBufferDict[trimmedItem[0]].extend(trimmedItem[1])
+                #    statDict[trimmedItem[0]] = 1
+                if trimmedItem[0] in trimBufferKeys:
+                    temp = trimBufferDict[trimmedItem[0]]
+                    temp.extend(trimmedItem[1])
+                    trimBufferDict[trimmedItem[0]] = temp
                     statDict[trimmedItem[0]] += 1
                 else:
-                    print "Key :"+str(trimmedItem[0])
-                    trimBufferDict[trimmedItem[0]] = []
-                    trimBufferDict[trimmedItem[0]].extend(trimmedItem[1])
+                    trimBufferKeys.append(trimmedItem[0])
+                    temp = []
+                    temp.extend(trimmedItem[1])
+                    trimBufferDict[trimmedItem[0]] = temp
                     statDict[trimmedItem[0]] = 1
                 counter = 0
                 item = [None]*4
@@ -147,13 +160,26 @@ def readFastq(fastqFile, optionDir):
             counter = 0
             item = [None] *4
         else:
-            if trimBufferDict.has_key(trimmedItem[0]):
-                trimBufferDict[trimmedItem[0]].extend(trimmedItem[1])
+            # again the change
+            #if trimBufferDict.has_key(trimmedItem[0]):
+            #    trimBufferDict[trimmedItem[0]].extend(trimmedItem[1])
+            #    statDict[trimmedItem[0]] += 1
+            #else:
+            #    trimBufferDict[trimmedItem[0]] = []
+            #    trimBufferDict[trimmedItem[0]].extend(trimmedItem[1])
+            #    statDict[trimmedItem[0]] = 1
+            if trimmedItem[0] in trimBufferKeys:
+                temp = trimBufferDict[trimmedItem[0]]
+                temp.extend(trimmedItem[1])
+                trimBufferDict[trimmedItem[0]] = temp
                 statDict[trimmedItem[0]] += 1
             else:
-                trimBufferDict[trimmedItem[0]] = []
-                trimBufferDict[trimmedItem[0]].extend(trimmedItem[1])
+                trimBufferKeys.append(trimmedItem[0])
+                temp = []
+                temp.extend(trimmedItem[1])
+                trimBufferDict[trimmedItem[0]] = temp
                 statDict[trimmedItem[0]] = 1
+                
     ##### read in terminated! #####
     if optionDir['verbose']:
         sys.stdout.write("------------\n")
