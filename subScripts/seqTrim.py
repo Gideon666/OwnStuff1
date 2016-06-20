@@ -28,6 +28,8 @@
 import sys, string, os, getopt, re, shelve
 import datetime
 import pdb
+from aux1.recSize import total_size as getsizeof
+
 ######Level One##########
 
 def processArgs(args, optionDir):
@@ -78,7 +80,7 @@ def manage(args, optionDir):
         buffer1 = readFastq(a, optionDir)
     saveBarcodedFastQ(buffer1[0], optionDir)
     #close shelve
-    buffer1[0].close()
+    #buffer1[0].close()
     return args, optionDir
 
 ######Level Two##########
@@ -92,12 +94,12 @@ def saveBarcodedFastQ(fastqDict, optionDir):
         if optionDir['verbose']:
             sys.stdout.write(optionDir['oFile'][0]+"_BC_"+k+".fastq\n")
         if 'destination' in optionDir.keys():
-            with open(optionDir['destination']+"/"+optionDir['oFile'][0]+"_BC_"+k+".fastq","w")\
+            with open(optionDir['destination']+"/"+optionDir['oFile'][0]+"_BC_"+k+".fastq","a")\
                     as ohandle:
                 for line in v:
                     ohandle.write(line+"\n")
         else: 
-            with open(optionDir['oFile'][0]+"_BC_"+k+".fastq",'w') as ohandle:
+            with open(optionDir['oFile'][0]+"_BC_"+k+".fastq",'a') as ohandle:
                 for line in v:
                     ohandle.write(line+"\n")
         ohandle.close()
@@ -105,20 +107,33 @@ def saveBarcodedFastQ(fastqDict, optionDir):
 def readFastq(fastqFile, optionDir):
     """
     """
-    trimBufferDict = shelve.open("trimBufferDict", writeback=True)
+    #trimBufferDict = shelve.open("trimBufferDict", writeback=True)
     trimBufferKeys = []
-    #trimBufferDict = {}
+    trimBufferDict = {}
     BarcodeDict = {}
     statDict = {}	
     item = [None]*4
     counter = 1
+    loopCounter = 0
     trimBufferDict['_OUT_'] = []
     with open(fastqFile, 'r') as ihandle:
         item[0] = string.strip(ihandle.readline())
 
         for line in ihandle:
+            #check dictionary size
+            if loopCounter >= 500:
+                loopCounter = 0
+                dictsize = getsizeof(trimBufferDict)
+                if dictsize >= optionDir['maxChunkSize']:
+                    print "Size of trimBufferDict : {0}".format(str(dictsize))
+                    saveBarcodedFastQ(trimBufferDict, optionDir)
+                    trimBufferDict = {}
+                    trimBufferDict['_OUT_'] = []
+                    statDict = {}
             #if line.startswith("@M01950"):
             if line.startswith("@ST-K00207"):
+                loopCounter +=1
+                # new FastQ Item
                 trimmedItem = trimItem(item, optionDir)
             #if trimmedItem[0] not in optionDir['barcodes']:
             #    print trimmedItem[0]
@@ -130,25 +145,25 @@ def readFastq(fastqFile, optionDir):
                     counter += 1
                     continue
                 # change from normal directory to shelve
-                #if trimBufferDict.has_key(trimmedItem[0]):
-                #    trimBufferDict[trimmedItem[0]].extend(trimmedItem[1])
-                #    statDict[trimmedItem[0]] += 1
-                #else:
-                #    print "Key :"+str(trimmedItem[0])
-                #    trimBufferDict[trimmedItem[0]] = []
-                #    trimBufferDict[trimmedItem[0]].extend(trimmedItem[1])
-                #    statDict[trimmedItem[0]] = 1
-                if trimmedItem[0] in trimBufferKeys:
-                    temp = trimBufferDict[trimmedItem[0]]
-                    temp.extend(trimmedItem[1])
-                    trimBufferDict[trimmedItem[0]] = temp
+                if trimBufferDict.has_key(trimmedItem[0]):
+                    trimBufferDict[trimmedItem[0]].extend(trimmedItem[1])
                     statDict[trimmedItem[0]] += 1
                 else:
-                    trimBufferKeys.append(trimmedItem[0])
-                    temp = []
-                    temp.extend(trimmedItem[1])
-                    trimBufferDict[trimmedItem[0]] = temp
+                    print "Key :{0} added!".format(str(trimmedItem[0]))
+                    trimBufferDict[trimmedItem[0]] = []
+                    trimBufferDict[trimmedItem[0]].extend(trimmedItem[1])
                     statDict[trimmedItem[0]] = 1
+                #if trimmedItem[0] in trimBufferKeys:
+                #    temp = trimBufferDict[trimmedItem[0]]
+                #    temp.extend(trimmedItem[1])
+                #    trimBufferDict[trimmedItem[0]] = temp
+                #    statDict[trimmedItem[0]] += 1
+                #else:
+                #    trimBufferKeys.append(trimmedItem[0])
+                #    temp = []
+                #    temp.extend(trimmedItem[1])
+                #    trimBufferDict[trimmedItem[0]] = temp
+                #    statDict[trimmedItem[0]] = 1
                 counter = 0
                 item = [None]*4
             item[counter] = string.strip(line)
@@ -161,24 +176,24 @@ def readFastq(fastqFile, optionDir):
             item = [None] *4
         else:
             # again the change
-            #if trimBufferDict.has_key(trimmedItem[0]):
-            #    trimBufferDict[trimmedItem[0]].extend(trimmedItem[1])
-            #    statDict[trimmedItem[0]] += 1
-            #else:
-            #    trimBufferDict[trimmedItem[0]] = []
-            #    trimBufferDict[trimmedItem[0]].extend(trimmedItem[1])
-            #    statDict[trimmedItem[0]] = 1
-            if trimmedItem[0] in trimBufferKeys:
-                temp = trimBufferDict[trimmedItem[0]]
-                temp.extend(trimmedItem[1])
-                trimBufferDict[trimmedItem[0]] = temp
+            if trimBufferDict.has_key(trimmedItem[0]):
+                trimBufferDict[trimmedItem[0]].extend(trimmedItem[1])
                 statDict[trimmedItem[0]] += 1
             else:
-                trimBufferKeys.append(trimmedItem[0])
-                temp = []
-                temp.extend(trimmedItem[1])
-                trimBufferDict[trimmedItem[0]] = temp
+                trimBufferDict[trimmedItem[0]] = []
+                trimBufferDict[trimmedItem[0]].extend(trimmedItem[1])
                 statDict[trimmedItem[0]] = 1
+            #if trimmedItem[0] in trimBufferKeys:
+            #    temp = trimBufferDict[trimmedItem[0]]
+            #    temp.extend(trimmedItem[1])
+            #    trimBufferDict[trimmedItem[0]] = temp
+            #    statDict[trimmedItem[0]] += 1
+            #else:
+            #    trimBufferKeys.append(trimmedItem[0])
+            #    temp = []
+            #    temp.extend(trimmedItem[1])
+            #    trimBufferDict[trimmedItem[0]] = temp
+            #    statDict[trimmedItem[0]] = 1
                 
     ##### read in terminated! #####
     if optionDir['verbose']:
@@ -372,7 +387,8 @@ def setDefaultValues():
                 'oFile': ['temp','txt'],\
                 'verbose': True,\
                 'adapter': 'ATCTCGTATGCCGTCTTCTGCTTG',\
-                'adapterMinLen' : 10}
+                'adapterMinLen' : 10,
+                'maxChunkSize' : 200000000}#1073741824} # in Bytes; 1073741824 bytes = 1 Gigybyte
     return ValueDir
 
 #######Main#######
