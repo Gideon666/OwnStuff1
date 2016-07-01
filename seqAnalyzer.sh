@@ -23,14 +23,14 @@
 
 #debugSwitches:
 trimming=true
-cutting=true
-collapsing=true
-library=true
-blating=true
-sorting=true
-collapsing2=true
-maskcheck=true
-statistic=true
+cutting=false
+collapsing=false
+library=false
+blating=false
+sorting=false
+collapsing2=false
+maskcheck=false
+statistic=false
 
 
 #default Value init
@@ -41,6 +41,7 @@ keep="F"
 itags="F"
 loop="TAGTGAAGCCACAGATGTA"
 mirSeq="GTATATTGCTGTTGACAGTGAGCG" #default 5'mirE
+workdir=false
 ####################
 while [[ $# > 0 ]];
 do
@@ -74,6 +75,10 @@ do
         mirSeq="$2"
         shift
         ;;
+        -w|--workingDir)
+        workdir="$2"
+        shift
+        ;;
         *)
         break
         ;;
@@ -99,8 +104,11 @@ echo -e "Library File =\t${mappingFile}"
 absdest=$(readlink -e $(dirname "$destination"))
 absdest="${absdest}/$(basename "${destination}")"
 echo -e "Absolute d.  =\t${absdest}"
-#workdir="/tmp/seqAnalyzer_$$/"
-workdir="/Data/PipeTMP/seqAnalyzer_15000/"
+if [[ "$workdir" == false ]]; then
+    #workdir="/tmp/seqAnalyzer_$$/"
+    #workdir="/Data/SequencingData/DKFZ_HTSU_Run1/seqAnalyzerPart1/"
+    workdir="/Data/PipeTmp3/seqAnalyzer3_$$/"
+fi
 mkdir -p $workdir
 statFile=${workdir}Stats.txt
 echo -e "#${1}\t${2}\t${3}\t${4}" > $statFile
