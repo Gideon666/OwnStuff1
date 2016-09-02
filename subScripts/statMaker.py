@@ -259,9 +259,9 @@ def makePlots(args, optionDir):
     #### plotting
     
     makePie(ax0, DataDict, TotalDict, args, optionDir, title="Barcode Splitting")
-    makeBoxPlot(ax1, blatResDict, args, optionDir, title="Sequence Read Quantity N=1")
+    makeBoxPlot(ax1, blatResDict, args, optionDir, title="Sequence Read Quantity N>=1", log=True)
     makePie(ax2, DataDict, TotalDict, args, optionDir, title="Perfect Hits", LC=("LN","LR"))
-    makeBoxPlot(ax3, blatResDict2, args, optionDir, title="Sequcence Read Quantity N=10")
+    makeBoxPlot(ax3, blatResDict2, args, optionDir, title="Sequcence Read Quantity N>=10", log=True)
 
     #### generell things
     plt.tight_layout()
@@ -318,7 +318,7 @@ def makePie(ax, DataDict, TotalDict, args, optionDir, title="", LC=('BC', 'BR'))
     ax.axis('equal')
     #plt.show()
 
-def makeBoxPlot(ax, blatResDict, args, optionDir, title=""):
+def makeBoxPlot(ax, blatResDict, args, optionDir, title="", log=False):
     """
     receives the information from the result dicts...
     
@@ -343,6 +343,8 @@ def makeBoxPlot(ax, blatResDict, args, optionDir, title=""):
     ax.yaxis.grid(True, linestyle='-', which='major', color='lightgrey', alpha=0.7)
     ax.set_axisbelow(True)
     ax.set_ylabel('Number of Reads')
+    if log:
+        ax.set_scale('log')
     ax.set_xlabel('Pools')
     xtickNames = plt.setp(ax, xticklabels=labels)
     plt.setp(xtickNames, rotation=45, fontsize=8)
