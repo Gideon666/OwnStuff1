@@ -344,7 +344,7 @@ def makeBoxPlot(ax, blatResDict, args, optionDir, title="", log=False):
     ax.set_axisbelow(True)
     ax.set_ylabel('Number of Reads')
     if log:
-        ax.set_scale('log')
+        ax.set_yscale('log')
     ax.set_xlabel('Pools')
     xtickNames = plt.setp(ax, xticklabels=labels)
     plt.setp(xtickNames, rotation=45, fontsize=8)

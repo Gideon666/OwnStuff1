@@ -115,9 +115,15 @@ def readFastq(fastqFile, optionDir):
     item = [None]*4
     counter = 1
     loopCounter = 0
+    MacCode = optionDir['seqMachineId']
     trimBufferDict['_OUT_'] = []
     with open(fastqFile, 'r') as ihandle:
         item[0] = string.strip(ihandle.readline())
+        if MacCode=='auto':
+            MacCode = string.split(item[0])[0]
+            if not(MacCode.startswith('@')):
+                sys.stdout.write("Warning! Possible FastQFile corruption!\n")
+                sys.stdout.write("Sequencer Machine Code : {0}".format(MacCode))
 
         for line in ihandle:
             #check dictionary size
@@ -131,7 +137,8 @@ def readFastq(fastqFile, optionDir):
                     trimBufferDict['_OUT_'] = []
                     statDict = {}
             #if line.startswith("@M01950"):
-            if line.startswith("@ST-K00207"):
+            #if line.startswith("@ST-K00207"):
+            if line.startswith(MacCode):
                 loopCounter +=1
                 # new FastQ Item
                 trimmedItem = trimItem(item, optionDir)
@@ -382,12 +389,15 @@ def readConfig(optionDir):
 def setDefaultValues():
     """
     standard Values settings
+    seqMachineId is     @M01950 miseq and
+                        @ST-K00207 hiseq
     """
     ValueDir = {\
                 'oFile': ['temp','txt'],\
                 'verbose': True,\
                 'adapter': 'ATCTCGTATGCCGTCTTCTGCTTG',\
-                'adapterMinLen' : 10,
+                'adapterMinLen' : 10,\
+                'seqMachineId' : "auto",\
                 'maxChunkSize' : 200000000}#1073741824} # in Bytes; 1073741824 bytes = 1 Gigybyte
     return ValueDir
 
