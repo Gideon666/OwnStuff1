@@ -261,7 +261,7 @@ def makePlots(args, optionDir):
     makePie(ax0, DataDict, TotalDict, args, optionDir, title="Barcode Splitting")
     makeBoxPlot(ax1, blatResDict, args, optionDir, title="Sequence Read Quantity N>=1", log=True)
     makePie(ax2, DataDict, TotalDict, args, optionDir, title="Perfect Hits", LC=("LN","LR"))
-    makeBoxPlot(ax3, blatResDict2, args, optionDir, title="Sequcence Read Quantity N>=10", log=True)
+    makeBoxPlot(ax3, blatResDict2, args, optionDir, title="Sequcence Read Quantity N<=10", log=True)
 
     #### generell things
     plt.tight_layout()
@@ -277,7 +277,7 @@ def makePlots(args, optionDir):
         group= groups[ind]
         grpSize = len(group[2])
         plotNum = sumFG(grpSize-1)
-        fig, axes = plt.subplots(nrows=2, ncols=plotNum, figsize=((plotNum)*10, 20), dpi=80)
+        fig, axes = plt.subplots(nrows=2, ncols=plotNum, figsize=(min(plotNum, 16)*10, 20), dpi=80)
         axesList = axes.flat
     #### plotting
         if (grpSize <=1):
