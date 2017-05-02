@@ -47,7 +47,7 @@ def processArgs(args, optionDir):
         ibuffer = ihandle.readlines()
         ihandle.close()
         for line in ibuffer:
-            if line.startswith('#'):
+            if line.startswith('#') or string.strip(line) == "":
                 continue
             bc_string = string.split(string.strip(line))
             bcodes.append(bc_string[1])
@@ -120,14 +120,15 @@ def readFastq(fastqFile, optionDir):
     with open(fastqFile, 'r') as ihandle:
         item[0] = string.strip(ihandle.readline())
         if MacCode=='auto':
-            MacCode = string.split(item[0])[0]
+            MacCode = string.split(item[0], sep=":")[0]
+            sys.stdout.write("Machine Code : {0}\n".format(MacCode))
             if not(MacCode.startswith('@')):
                 sys.stdout.write("Warning! Possible FastQFile corruption!\n")
                 sys.stdout.write("Sequencer Machine Code : {0}".format(MacCode))
 
         for line in ihandle:
             #check dictionary size
-            if loopCounter >= 500:
+            if loopCounter >= 100000:
                 loopCounter = 0
                 dictsize = getsizeof(trimBufferDict)
                 if dictsize >= optionDir['maxChunkSize']:
