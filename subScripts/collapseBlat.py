@@ -26,6 +26,9 @@ def manage(args, optionDir):
     """
     """
     for a in args:
+        if 'config' in optionDir.keys():
+            if not(os.path.basename(a)[:8] in optionDir['config'].keys()):
+                continue
         retDict, optionDir = collapse(a, optionDir)
         if 'doStats' in optionDir.keys():
             optionDir = calcStats(a, retDict, optionDir)
