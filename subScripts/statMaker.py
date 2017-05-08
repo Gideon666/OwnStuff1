@@ -164,6 +164,8 @@ PerfectLoop\t5'mir Sequence\tCutout Sequences\tCollapsed to # unique Sequences \
 Blat Hits with total # of Reads\tHit Rate\t\tTotalBarcodeReads\n"
 
     for entry, values in DataDict.items():
+        if not(entry in optionDir['config'].keys()):
+            continue
         keys = values.keys()
         sys.stdout.write("CSVStats : "+str(entry)+" "+str(values)+"\n")
         outputString += optionDir['config'][entry][0]+"\t"+optionDir['config'][entry][3]+"\t"
