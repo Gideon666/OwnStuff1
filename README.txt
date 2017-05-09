@@ -1,6 +1,7 @@
 #seqAnalyzer.sh README
 #
-# Care Remember to change Seq Machinecode in seqTrim line 117
+# Care Remember to change Seq Machinecode in seqTrim line 117.
+# now on automatic recognition!
 #
 ####
 #### Example call of seqAnalyzer, which leaves the working directory in the tmp folder (-k, keep):

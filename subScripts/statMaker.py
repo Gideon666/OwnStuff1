@@ -32,13 +32,15 @@ def manage(args, optionDir):
 def processArgs(args, optionDir):
     """
     """
+    sys.stdout.write("Processing Config....\n")
+    if 'configFile' in optionDir.keys():
+        optionDir['config'] = readConfig(optionDir)
     optionDir['statData'] = {}
+    sys.stdout.write("Processing Stats....\n")
     if 'statFile' in optionDir.keys():
         statDict, totalDict = processStatFile(optionDir['statFile'])
         optionDir['NumberDict'] = statDict
         optionDir['TotalsDict'] = totalDict
-    if 'configFile' in optionDir.keys():
-        optionDir['config'] = readConfig(optionDir)
     return args, optionDir
 
 ######Level Two######
@@ -47,10 +49,15 @@ def calcStats(args, optionDir):
     """
     default stats calculater
     """
+    sys.stdout.write("Calculating Stats....\n")
     writeCSVStats(args, optionDir)
+    sys.stdout.write('CSVStats written!\n')
     args, optionDir = getData(args, optionDir)
+    sys.stdout.write('CSVStats written!\n')
     makePlots(args, optionDir)
+    sys.stdout.write('Plots written!\n')
     writeCSVhairpins(args, optionDir)
+    sys.stdout.write('CSVhairpins written!\n')
 
 def processStatFile(eStatfile):
     """
@@ -77,13 +84,22 @@ def structStats(statDict):
     for info in twoFieldKeys:
         try:
             for BarcodeList in statDict[info]:
-                if BarcodeList[0] in BarcodeDict.keys():
-                    BarcodeDict[BarcodeList[0]][info] = string.atoi(BarcodeList[1])
-                else:
-                    BarcodeDict[BarcodeList[0]] = {}
-                    BarcodeDict[BarcodeList[0]][info] = string.atoi(BarcodeList[1])
+                try:
+                    if BarcodeList[0] in BarcodeDict.keys():
+                        BarcodeDict[BarcodeList[0]][info] = string.atoi(BarcodeList[1])
+                    else:
+                        BarcodeDict[BarcodeList[0]] = {}
+                        BarcodeDict[BarcodeList[0]][info] = string.atoi(BarcodeList[1])
+                except KeyError:
+                    sys.stderr.write("KeyError: {0}\n".format(BarcodeList))
+                    sys.stderr.write("BarcodeDict: {0}\n".format(BarcodeDict.keys()))
+                    if BarcodeList[0] in BarcodeDict.keys():
+                        BarcodeDict[BarcodeList[0]][info] = 0
+                    else:
+                        BarcodeDict[BarcodeList[0]] = {}
+                        BarcodeDict[BarcodeList[0]][info] = 0
         except KeyError:
-            sys.stderr.write("KeyError!\n")
+            sys.stderr.write("KeyError: {0}\n".format(statDict))
             sys.exit(-1)
     #### Onefields
     for tInfo in oneFieldKeys:
@@ -139,11 +155,16 @@ def readInStatFile(eStatfile):
     ohandle = open(eStatfile, 'r')
     #linecrawling
     for line in ohandle:
-        if line.startswith('#'):
+        if string.strip(line) == '':
+            continue
+        if line.startswith('#') or line.startswith('@'):
             continue
         atoms = string.split(string.strip(line))
         header = atoms[0]
         info = atoms[1:]
+        if len(info) > 1:
+            if atoms[1] not in optionDir['config'].keys():
+                continue
         if header in retDict.keys():
             retDict[header].append(info)
         else:
@@ -228,9 +249,12 @@ def getData(args, optionDir, pat=None, LC="BL"):
     for (dirpath, dirnames, filenames) in walk(optionDir['destination']):
         list.extend(filenames)
         break
+    sys.stdout.write("Loading list for getData:\n{0}\n".format(str(list)))
     for fName in list:
         barc = re.search(pat, fName)
         if barc:
+            if fName[:8] not in optionDir['config'].keys():
+                continue
             #sys.stdout.write("Loading : %s\n"% (dirpath+fName))
             bl[barc.group(1)] = loadIn(dirpath+fName, args, optionDir)
     optionDir['firstBlatData'] = bl
@@ -646,6 +670,8 @@ def readConfig(optionDir):
     barcodes = {}
     with open(optionDir['configFile'], 'r') as ihandle:
         for line in ihandle:
+            if string.strip(line) == "":
+                continue
             if not(line.startswith("#") or line.startswith("@")):
                 atoms = string.split(string.strip(line), sep="\t")
                 barcodes[atoms[1]] = atoms
@@ -676,6 +702,7 @@ def setDefaultValues():
 #######Main#######
 
 def main():
+    global optionDir
     optionDir = setDefaultValues()
     try:
         opts, args = getopt.getopt(sys.argv[1:],\
