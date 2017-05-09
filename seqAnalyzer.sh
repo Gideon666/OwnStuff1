@@ -79,6 +79,18 @@ do
         workdir="$2"
         shift
         ;;
+        -j|--justSorting)
+        keep=true
+        trimming=true
+        cutting=false
+        collapsing=false
+        library=false
+        blating=false
+        sorting=false
+        collapsing2=false
+        maskcheck=false
+        statistic=false
+        ;;
         *)
         break
         ;;
@@ -108,7 +120,7 @@ if [[ "$workdir" == false ]]; then
     #workdir="/tmp/seqAnalyzer_$$/"
     workdir="/Data/PipeTmp/seqAnalyzer_$$/"
     #workdir="/Data/PipeTmp/seqAnalyzer3_sumUp/"
-    #workdir="/Data/PipeTmp/seqAnalyzer_khalid/"
+    #workdir="/Data/PipeTmp/seqAnalyzer_25343/"
 fi
 mkdir -p $workdir
 statFile=${workdir}Stats.txt
@@ -116,7 +128,8 @@ echo -e "#${1}\t${2}\t${3}\t${4}" > $statFile
 #########
 ##Stats##
 
-tReads=$(expr $(cat "$sourceFile" | wc -l ) / 4) #| gawk '{if($2 !="total") print $2;}')
+#tReads=$(expr $(cat "$sourceFile" | wc -l ) / 4) #| gawk '{if($2 !="total") print $2;}')
+tReads=$(expr $(wc -l "$sourceFile" | gawk '{print $1}' ) / 4) #| gawk '{if($2 !="total") print $2;}')
 #Total Reads
 echo -e "TR\t$tReads" >> $statFile
 
@@ -297,7 +310,6 @@ if [[ "$maskcheck" == true ]]; then
 fi
 
 # 2. in Blat hits
-
 
 ##############
 # Stat Maker #
