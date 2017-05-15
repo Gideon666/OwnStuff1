@@ -230,7 +230,8 @@ def writeCSVhairpins(args, optionDir):
             #print reads
             indexName.append(hpName)
             column.append(reads)
-        readDict[bc] = pd.Series(column, index=indexName)
+        #readDict[bc] = pd.Series(column, index=indexName)
+        readDict[bc+"_("+optionDir['config'][bc][3]+")"] = pd.Series(column, index=indexName)
     pDF = pd.DataFrame(readDict)
     pDF.to_csv(optionDir['destination']+"/"+"pandatest.tsv", sep="\t")
     #save for future work to h5
