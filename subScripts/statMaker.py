@@ -210,6 +210,7 @@ Blat Hits with total # of Reads\tHit Rate\t\tTotalBarcodeReads\n"
 def writeCSVhairpins(args, optionDir):
     """
     """
+    if optionDir['verbose'] : sys.stdout.write("Writing Pandafile...\n")
     data = optionDir['blatResults']
     columnum = len(data.keys())
     rownum = max(map(len, data.values()))
@@ -231,7 +232,11 @@ def writeCSVhairpins(args, optionDir):
             indexName.append(hpName)
             column.append(reads)
         #readDict[bc] = pd.Series(column, index=indexName)
-        readDict[bc+"_("+optionDir['config'][bc][3]+")"] = pd.Series(column, index=indexName)
+        try:
+            readDict[bc+"_("+optionDir['config'][bc][3]+")"] = pd.Series(column, index=indexName)
+        except IndexError:
+            sys.stdout.write("Index Error in writeCSVhairpins statMaker.py ... {0}\n".format(bc))
+            readDict[bc] = pd.Series(column, index=indexName)
     pDF = pd.DataFrame(readDict)
     pDF.to_csv(optionDir['destination']+"/"+"pandatest.tsv", sep="\t")
     #save for future work to h5
@@ -250,13 +255,15 @@ def getData(args, optionDir, pat=None, LC="BL"):
     for (dirpath, dirnames, filenames) in walk(optionDir['destination']):
         list.extend(filenames)
         break
-    sys.stdout.write("Loading list for getData:\n{0}\n".format(str(list)))
+    if optionDir['verbose']:
+        sys.stdout.write("Loading list for getData:\n{0}\n".format(str(list)))
+        sys.stdout.write("config list:\t{0}\n".format(optionDir['config'].keys()))
     for fName in list:
         barc = re.search(pat, fName)
         if barc:
             if fName[:8] not in optionDir['config'].keys():
                 continue
-            #sys.stdout.write("Loading : %s\n"% (dirpath+fName))
+            if optionDir['verbose'] : sys.stdout.write("Loading : %s\n"% (dirpath+fName))
             bl[barc.group(1)] = loadIn(dirpath+fName, args, optionDir)
     optionDir['firstBlatData'] = bl
     return args, optionDir
@@ -690,6 +697,7 @@ def setDefaultValues():
                 'oFile': ['Stats','tsv'],\
                 'destination' : "./",\
                 'iTags': False,\
+                'verbose': True,\
                 'colorSet' : [\
                 'yellowgreen', 'gold', 'lightskyblue', 'lightcoral', 'darksalmon',\
                 'orangered', 'palegoldenrod','azure', 'darkorchid', 'firebrick',\
@@ -707,9 +715,9 @@ def main():
     optionDir = setDefaultValues()
     try:
         opts, args = getopt.getopt(sys.argv[1:],\
-                "h, o:, s:, d:, e:, c:, i",\
+                "h, o:, s:, d:, e:, c:, i, v",\
                 ["help", "output=", "statFile=", "destination=", "externalD=",\
-                "configFile=", "iTags"])
+                "configFile=", "iTags", "verbose"])
     except getopt.Error, msg:
         sys.stdout.write(msg + "\n")
         sys.stdout.write("For help, use -h!\n")
@@ -733,6 +741,8 @@ def main():
             optionDir['configFile'] = string.strip(a)
         if o in ['-i', '--iTags']:
             optionDir['iTags'] = True
+        if o in ['-v', '--verbose']:
+            optionDir['verbose'] = True
 
     args, optionDir = processArgs(args, optionDir)
     manage(args, optionDir)
