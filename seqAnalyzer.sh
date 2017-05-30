@@ -34,7 +34,7 @@ statistic=true
 
 
 #default Value init
-rThreshold=1000 # read threshold after barcode splitting
+rThreshold=10 # read threshold after barcode splitting
 mmLoop=2
 gapsLoop=2
 keep="F"
@@ -42,6 +42,7 @@ itags="F"
 loop="TAGTGAAGCCACAGATGTA"
 mirSeq="GTATATTGCTGTTGACAGTGAGCG" #default 5'mirE
 workdir=false
+fastqlines=0
 ####################
 while [[ $# > 0 ]];
 do
@@ -91,6 +92,10 @@ do
         maskcheck=false
         statistic=false
         ;;
+        -q|--fastqlines)
+        fastqlines="$2"
+        shift
+        ;;
         *)
         break
         ;;
@@ -121,15 +126,22 @@ if [[ "$workdir" == false ]]; then
     workdir="/Data/PipeTmp/seqAnalyzer_$$/"
     #workdir="/Data/PipeTmp/seqAnalyzer3_sumUp/"
     #workdir="/Data/PipeTmp/seqAnalyzer_25343/"
+    #workdir="/Data/PipeTmp2/seqAnalyzer_AS_153875_SumUp/"
+    #workdir="/Data/PipeTmp2/seqAnalyzer_AS_153877_DKFZRun3_sumUp/"
 fi
 mkdir -p $workdir
 statFile=${workdir}Stats.txt
 echo -e "#${1}\t${2}\t${3}\t${4}" > $statFile
 #########
 ##Stats##
-
 #tReads=$(expr $(cat "$sourceFile" | wc -l ) / 4) #| gawk '{if($2 !="total") print $2;}')
-tReads=$(expr $(wc -l "$sourceFile" | gawk '{print $1}' ) / 4) #| gawk '{if($2 !="total") print $2;}')
+
+if [[ "$fastqlines" == 0 ]]; then
+    tReads=$(expr $(wc -l "$sourceFile" | gawk '{print $1}' ) / 4) #| gawk '{if($2 !="total") print $2;}')
+else
+    tReads=$fastqlines
+fi
+
 #Total Reads
 echo -e "TR\t$tReads" >> $statFile
 
@@ -147,7 +159,15 @@ fi
 # HighBarcodes
 # paste all Files with more than $rThreshold reads in a txt file, default 100000
 # default now 0 
-wc -l ${workdir}/*BC_????????.fastq | gawk -v t=${rThreshold} '$1 > t {print $0}' > "${workdir}_highBarcodes.txt"
+countlist=$(gawk ' /^[^#@]/ {print $2}' "$barcodeFile")
+
+for bc in $countlist;
+    do
+        wc -l ${workdir}/*BC_${bc}.fastq | gawk -v t=${rThreshold} '$1 > t {print $0}' >> "${workdir}_highBarcodes.txt"
+    done
+gawk 'BEGIN {n=0}; {n+=$1}; END {print n, "total"}' "${workdir}_highBarcodes.txt" >> "${workdir}_highBarcodes.txt"
+
+#wc -l ${workdir}/*BC_????????.fastq | gawk -v t=${rThreshold} '$1 > t {print $0}' > "${workdir}_highBarcodes.txt"
 
 ## 3.###############
 # SeqCutOut
@@ -199,7 +219,8 @@ if [[ "$library" == true ]]; then
 fi
 
 ## 5.###############
-# BLAT 
+# BLAT
+
 if [[ "$blating" == true ]]; then
     col2blat=$(ls ${workdir}*_collapsed.fasta)
 
@@ -212,10 +233,10 @@ if [[ "$blating" == true ]]; then
             echo "$line Blat against $poolfile"
             ${blatDestination}blat -oneOff=1 -t=dna -q=dna -out=pslx -dots=5000 \
                  "${workdir}${poolfile}_pool.fasta" "$line" "${workdir}${barcode}_Pool(${poolfile})_BL.pslx"
-        else
-            echo "$line Blat agains All"
-            ${blatDestination}blat -oneOff=1 -t=dna -q=dna -out=pslx -dots=5000 \
-                 "${mappingFile}" "$line" "${workdir}${barcode}_Pool(All)_BL.pslx"
+        #else
+        #    echo "$line Blat agains All"
+        #    ${blatDestination}blat -oneOff=1 -t=dna -q=dna -out=pslx -dots=5000 \
+        #         "${mappingFile}" "$line" "${workdir}${barcode}_Pool(All)_BL.pslx"
         fi
     done
 fi
