@@ -21,6 +21,32 @@
 # MB : mask(loop) in barcode split files
 ##
 
+#Docline
+
+docline="##########################################################################\n
+usage seqAnalyzer.sh [options] FastqReadfile DestinationFolder barcodeTextfile mappingFile\n\n
+    \t-h,--help:\n
+    \t\tthis help page.\n
+    \t-k,--keepData:\n
+    \t\ttemporaryData ist not erased from workfolder\n
+    \t-t,--threshold:\n
+    \t\treadThreshold, default=10\n
+    \t-s,--missmatchLoop:\n
+    \t\tallowed missmatches in the shRNALoop, default=2\n
+    \t-a,--gapsLoop:\n
+    \t\tallowed gaps in the shRNALoop, default=2\n
+    \t-i,--itags:\n
+    \t\titags modus\n
+    \t-l,--loop:\n
+    \t\tinsert your custom loop sequence\n
+    \t-m,--mirCheck:\n
+    \t\tinsert your custom mir sequence\n
+    \t-w,--workingDir:\n
+    \t\tpath to custom working Directory\n
+    \t-j,--justSorting:\n
+    \t\tsetting switches and breakpoints if you only
+        want to trimm an do the barcodesorting.\n"
+
 #debugSwitches:
 trimming=true
 cutting=true
@@ -49,6 +75,8 @@ do
     key="$1"
     case $key in
         -h|--help)
+        echo -e $docline
+        exit
         ;;
         -k|--keepData)
         keep=true
@@ -124,6 +152,7 @@ echo -e "Absolute d.  =\t${absdest}"
 if [[ "$workdir" == false ]]; then
     #workdir="/tmp/seqAnalyzer_$$/"
     workdir="/Data/PipeTmp/seqAnalyzer_$$/"
+    #workdir="/Data/PipeTmp/seqAnalyzer_AS_112997_sumUp/"
     #workdir="/Data/PipeTmp/seqAnalyzer3_sumUp/"
     #workdir="/Data/PipeTmp/seqAnalyzer_25343/"
     #workdir="/Data/PipeTmp2/seqAnalyzer_AS_153875_SumUp/"
