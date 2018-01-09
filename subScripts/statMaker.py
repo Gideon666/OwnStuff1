@@ -311,6 +311,8 @@ def makePlots(args, optionDir):
         group= groups[ind]
         grpSize = len(group[2])
         plotNum = sumFG(grpSize-1)
+        #print "ind: {0}\ngrpSize: {1}\nplotNum: {2}\n".format(ind, grpSize, plotNum)
+        #print groups[ind]
         fig, axes = plt.subplots(nrows=2, ncols=plotNum, figsize=(min(plotNum, 16)*10, 20), dpi=80)
         axesList = axes.flat
     #### plotting
@@ -575,6 +577,8 @@ def groupPlot(optionDir):
         rRows = (plotNum / rCols) + 1
         BCkeys = v[:]
         groups.append((rRows, rCols, BCkeys))
+    #print "All Groups:"
+    #print groups
     return groups
 
 

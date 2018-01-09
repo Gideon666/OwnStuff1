@@ -144,7 +144,6 @@ def readFastq(fastqFile, optionDir):
                 # new FastQ Item
                 trimmedItem = trimItem(item, optionDir)
             #if trimmedItem[0] not in optionDir['barcodes']:
-            #    print trimmedItem[0]
                 if trimmedItem[0] == None:
                     trimBufferDict['_OUT_'].extend(trimmedItem[1])
                     counter = 0

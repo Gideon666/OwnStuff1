@@ -36,7 +36,7 @@ usage seqAnalyzer.sh [options] FastqReadfile DestinationFolder barcodeTextfile m
     \t-a,--gapsLoop:\n
     \t\tallowed gaps in the shRNALoop, default=2\n
     \t-i,--itags:\n
-    \t\titags modus\n
+    \t\titags mode\n
     \t-l,--loop:\n
     \t\tinsert your custom loop sequence\n
     \t-m,--mirCheck:\n
@@ -48,6 +48,7 @@ usage seqAnalyzer.sh [options] FastqReadfile DestinationFolder barcodeTextfile m
         want to trimm an do the barcodesorting.\n"
 
 #debugSwitches:
+# statistic cant run without maskcheck!!!
 trimming=true
 cutting=true
 collapsing=true
@@ -157,6 +158,7 @@ if [[ "$workdir" == false ]]; then
     #workdir="/Data/PipeTmp/seqAnalyzer_25343/"
     #workdir="/Data/PipeTmp2/seqAnalyzer_AS_153875_SumUp/"
     #workdir="/Data/PipeTmp2/seqAnalyzer_AS_153877_DKFZRun3_sumUp/"
+    #workdir="/Data/PipeTmp/seqAnalyzer_AS_171218/"
 fi
 mkdir -p $workdir
 statFile=${workdir}Stats.txt
