@@ -341,8 +341,10 @@ def makePie(ax, DataDict, TotalDict, args, optionDir, title="", LC=('BC', 'BR'))
     for entry, values in DataDict.items():
         try:
             sizes.append(100 * values[LC[0]]/float(TotalDict[LC[1]]))
-        except KeyError:
+        except (KeyError, ZeroDivisionError) as e:
             sizes.append(0.00001)
+            sys.stdout.write("Warning Error in makePie Values too small!\n{0}\n{1}\n"
+                    .format(entry, e))
         labels.append(entry)
     #for i in xrange(len(sizes)):
     #    labels[i] = labels[i]+"\n"+str(sizes[i])+"%"
@@ -519,8 +521,6 @@ def fillupInfos(barcodeDict, fieldKeys, keyLen=1):
                 else:
                     retDict[k][fK] = [0]*keyLen
     return retDict
-
-
 
 def onePlotRow(grpList):
     """

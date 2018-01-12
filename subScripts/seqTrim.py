@@ -59,7 +59,7 @@ def processArgs(args, optionDir):
     if 'adapter' in optionDir.keys():
         precompiledSet = []
         seq = string.upper(optionDir['adapter'])
-        precompiledSet = precompAdapter(optionDir['adapter'], optionDir)
+        precompiledSet = precompAdapter(optionDir['adapter'], optionDir)#, reverse=False)
         #while(len(seq) > optionDir['adapterMinLen']):
         #    seq = seq[:len(seq)-1]
         #    precompiledSet.append(re.compile(seq))
@@ -137,8 +137,6 @@ def readFastq(fastqFile, optionDir):
                     trimBufferDict = {}
                     trimBufferDict['_OUT_'] = []
                     statDict = {}
-            #if line.startswith("@M01950"):
-            #if line.startswith("@ST-K00207"):
             if line.startswith(MacCode):
                 loopCounter +=1
                 # new FastQ Item

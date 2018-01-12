@@ -152,13 +152,13 @@ absdest="${absdest}/$(basename "${destination}")"
 echo -e "Absolute d.  =\t${absdest}"
 if [[ "$workdir" == false ]]; then
     #workdir="/tmp/seqAnalyzer_$$/"
-    workdir="/Data/PipeTmp/seqAnalyzer_$$/"
+    #workdir="/Data/PipeTmp/seqAnalyzer_$$/"
     #workdir="/Data/PipeTmp/seqAnalyzer_AS_112997_sumUp/"
     #workdir="/Data/PipeTmp/seqAnalyzer3_sumUp/"
     #workdir="/Data/PipeTmp/seqAnalyzer_25343/"
     #workdir="/Data/PipeTmp2/seqAnalyzer_AS_153875_SumUp/"
     #workdir="/Data/PipeTmp2/seqAnalyzer_AS_153877_DKFZRun3_sumUp/"
-    #workdir="/Data/PipeTmp/seqAnalyzer_AS_171218/"
+    workdir="/Data/PipeTmp/seqAnalyzer_AS_171218/"
 fi
 mkdir -p $workdir
 statFile=${workdir}Stats.txt
