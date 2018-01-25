@@ -125,7 +125,6 @@ def readFastq(fastqFile, optionDir):
             if not(MacCode.startswith('@')):
                 sys.stdout.write("Warning! Possible FastQFile corruption!\n")
                 sys.stdout.write("Sequencer Machine Code : {0}".format(MacCode))
-
         for line in ihandle:
             #check dictionary size
             if loopCounter >= 100000:
@@ -362,6 +361,9 @@ def precompAdapter(adapterSeq, optionDir, reverse=True):
             retList.append(re.compile(seq))
     return retList
 
+
+
+
 def readConfig(optionDir):
     """
     # comments
@@ -396,6 +398,7 @@ def setDefaultValues():
                 'adapter': 'ATCTCGTATGCCGTCTTCTGCTTG',\
                 'adapterMinLen' : 10,\
                 'seqMachineId' : "auto",\
+                'MODE' : 'default',\
                 'maxChunkSize' : 200000000}#1073741824} # in Bytes; 1073741824 bytes = 1 Gigybyte
     return ValueDir
 
@@ -405,9 +408,9 @@ def main():
     optionDir = setDefaultValues()
     try:
         opts, args = getopt.getopt(sys.argv[1:],\
-                "h, o:, b:, a:, s, d:, t, c:",\
+                "h, o:, b:, a:, s, d:, t, c:, m:",\
                 ["help", "output=", "barcodes=", "adapter=", "silent", "destination=",\
-                "automatic", "configFile" ])
+                "automatic", "configFile", "mode=" ])
     except getopt.Error, msg:
         sys.stdout.write(msg + "\n")
         sys.stdout.write("For help, use -h!\n")
@@ -437,6 +440,8 @@ def main():
             optionDir['automatic'] = "auto"
         if o in ['-c', '--configFile']:
             optionDir['configFile'] = string.strip(a)
+        if o in ['-m', '--mode']:
+            optionDir['MODE'] = string.strip(a)
     args, optionDir = processArgs(args, optionDir)
     manage(args, optionDir)
 
