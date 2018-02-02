@@ -12,14 +12,17 @@ usage: seqCutout.py [options] inputFiles
 options:
     -m --mode: possible modes   n= normal
                                 i= iTags
+                                c= crspr
 """
 
+import argparse
 import sys, string, os, getopt
 import datetime
 import regex
 import aux1.pswm as ps
 import re
 import pdb
+
 
 ######Level One##########
 
@@ -52,6 +55,7 @@ def manage(args, optionDir):
 def cutOutFastq(fileFastq, optionDir):
     """
     new cutOut Function for Fasta file format
+    manager cutoutFunction
     """
     #### Initialize
     cuttedList = []
@@ -102,10 +106,9 @@ def saveCutFastq(filename, reslist, optionDir):
 
 ####Level three#######################
 
-#cutOutFastq
 def smartCutting(seq, startPos, endPos, optionDir):
     """
-    smartCutting matches the loop to the seq and 
+    smartCutting matches the ANCHOR(loop for shRNAs) to the seq and 
     cuts left and right.
     The borders are hard (+22bp left and right)
     If allowed mismatches: pswms are used for the
@@ -117,15 +120,43 @@ def smartCutting(seq, startPos, endPos, optionDir):
     If maskLoop is set the found loop is exchanged
     with the sequence for a perfect loop.
     """
+    if optionDir['mode'] in ['N', 'I']:
+        #startPos = 22
+        #endPos = 22
+        return smartCuttingShRNA(seq, startPos, endPos, optionDir)
+    if optionDir['mode'] in ['C']:
+        optionDir['patternCutLeft'] = -38
+        optionDir['patternCutRight'] = 28
+        startPos = 70
+        endPos = 90
+        return smartCuttingCrspr(seq, startPos, endPos, optionDir)
+
+####Level four########################
+
+def smartCuttingCrspr(seq, startPos, endPos, optionDir):
+    """
+    crspr Mode smartCutting
+    """
+    ## Init for Crspr
+    anchor = optionDir['ANCHOR']
+    retSeq = pswmLoop(seq, anchor, startPos, endPos, optionDir)
+    return retSeq    
+
+#cutOutFastq
+def smartCuttingShRNA(seq, startPos, endPos, optionDir):
+    """
+    shRNA Mode smartCutting
+    care regex cant find gabIns!!!
+    """
     lS=22
     rS=22
     retSeq = ""
     mLen = optionDir['minLength']
     loop = "TAGTGAAGCCACAGATGTA"
     if (optionDir['gabIns'] != 0):
-        retSeq = regExLoop(seq, loop, startPos, endPos)
+        retSeq = regExLoop(seq, loop, startPos, endPos, optionDir)
     else:
-        retSeq = pswmLoop(seq, loop, startPos, endPos)
+        retSeq = pswmLoop(seq, loop, startPos, endPos, optionDir)
     if optionDir['maskLoop']:
         retSeq = retSeq[:lS]+loop+retSeq[lS+loop:]
     ####
@@ -152,13 +183,14 @@ def smartCutting(seq, startPos, endPos, optionDir):
 ####Aux##############
 
 #smartCutting
-def pswmLoop(seq, loop, startPos, endPos):
+def pswmLoop(seq, loop, startPos, endPos, optionDir = {}):
     """
     """
     minScore = len(loop) - optionDir['loopMM']
-    lS = 22
-    rS = 22
-    minScore = 18.0
+    lS = optionDir['patternCutLeft']
+    rS = optionDir['patternCutRight']
+    #minScore = 18.0
+    print minScore
     loopmask = ps.PSWM([loop])
     sliceList = slwApproach(seq, len(loop))
     for pos in xrange(len(sliceList)):
@@ -169,6 +201,7 @@ def pswmLoop(seq, loop, startPos, endPos):
                 #print len(seq)
                 #print seq[pos-lS:pos+len(loop)+rS]
                 #print len(seq[pos-lS:pos+len(loop)+rS])
+            print "found"
             return seq[pos-lS:pos+len(loop)+rS]
     return seq[startPos:endPos]
 
@@ -186,13 +219,15 @@ def slwApproach(seq, size, hard=True):
     return retList
 
 #smartCutting
-def regExLoop(seq, loop, startPos, endPos):
+def regExLoop(seq, loop, startPos, endPos, optionDir = {}):
     """
+    regEx Error, cant find gabIns
     """
-    lS=22
-    rS=22
+    lS=optionDir['patternCutLeft']
+    rS=optionDir['patternCutRight']
     inDels = optionDir['gabIns']
-    looP = re.compile(r'(?:{0}){{e<={1}}}'.format(loop, inDels))
+    looP = re.compile('{0}'.format(loop))
+    #looP = re.compile(r'(?:{0}){{e<={1}}}'.format(loop, inDels))
     reL = looP.search(seq)
     if(reL):
         retSeq = seq[reL.start()-lS:reL.end()+rS]
@@ -205,6 +240,7 @@ def regExLoop(seq, loop, startPos, endPos):
             print retSeq
         else:    
             retSeq = seq[startPos:endPos]
+        sys.stdout.write("Warning in regExLoop!\nPattern not found!\n")
     return retSeq
 
 def reverseComplement(seq):
@@ -248,6 +284,14 @@ def readConfig(optionDir):
 
 ######Defaults###########
 
+def translate_args_options(args_opts):
+    opts = vars(args_opts)
+    args = opts['args']
+    del(opts['args'])
+
+    return args, opts
+
+
 def setDefaultValues():
     """
     standard Values settings
@@ -260,11 +304,33 @@ def setDefaultValues():
                 'minLength':63,\
                 'startCutout' : 34,\
                 'endCutout' : 97,\
-                'gabIns' : 0\
-               }
+                'patternCutLeft' : 22,\
+                'patternCutRight' : 22,\
+                'gabIns' : 0,\
+                'ANCHOR': 'TAGTGAAGCCACAGATGTA'\
+                }
     return ValueDir
 
 #######Main#######
+
+
+def main2():
+    ###var init
+    global optionDir
+    optionDir = setDefaultValues()
+    ###
+    parser = argparse.ArgumentParser(description=__doc__,\
+            prog=string.split(sys.argv[0], sep=".").upper())
+
+    parser.add_argument('-o', '--output', default=sys.stdout,\
+            metavar="OFILE",\
+            type=argparse.FileType('w'),\
+            help="Path to output File")
+
+    args_opts = parser.parse_args()
+    args, opts = translate_args_options(args_opts)
+    manage(args, optionDir)
+
 
 def main():
     global optionDir
@@ -288,7 +354,7 @@ def main():
                     datetime.datetime.now().strftime('_%Hh_%d_%m_%y')
         if o in ['-m', '--mode']:
             mode = string.upper(string.strip(a))
-            if mode in ['N', 'I']: #modes
+            if mode in ['N', 'I', 'C']: #modes
                 optionDir['mode'] = mode
         if o in ['-c', '--configFile']:
             optionDir['configFile'] = string.strip(a)
@@ -299,6 +365,7 @@ def main():
         if o in ['-g', '--gabIns']:
             print "gabs:"+str(a)
             optionDir['gabIns'] = string.atoi(string.strip(a))
+    
 
 
     args, optionDir = processArgs(args, optionDir)
