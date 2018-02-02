@@ -29,6 +29,7 @@ import sys, string, os, getopt, re, shelve
 import datetime
 import pdb
 from aux1.recSize import total_size as getsizeof
+from bMod.Sequences import SequenceCompare as SeqComp
 
 ######Level One##########
 
@@ -59,7 +60,10 @@ def processArgs(args, optionDir):
     if 'adapter' in optionDir.keys():
         precompiledSet = []
         seq = string.upper(optionDir['adapter'])
-        precompiledSet = precompAdapter(optionDir['adapter'], optionDir)#, reverse=False)
+        if optionDir['MODE'] == 'crspr':
+            precompiledSet = precompAdapter(optionDir['adapter'], optionDir, clipFromTail=False)#, reverse=False)
+        else:
+            precompiledSet = precompAdapter(optionDir['adapter'], optionDir)#, reverse=False)
         #while(len(seq) > optionDir['adapterMinLen']):
         #    seq = seq[:len(seq)-1]
         #    precompiledSet.append(re.compile(seq))
@@ -107,6 +111,7 @@ def saveBarcodedFastQ(fastqDict, optionDir):
 def readFastq(fastqFile, optionDir):
     """
     """
+    print optionDir['MODE']
     #trimBufferDict = shelve.open("trimBufferDict", writeback=True)
     trimBufferKeys = []
     trimBufferDict = {}
@@ -138,7 +143,7 @@ def readFastq(fastqFile, optionDir):
                     statDict = {}
             if line.startswith(MacCode):
                 loopCounter +=1
-                # new FastQ Item
+                ## new FastQ Item, Item[0] = Barcode, Item[1] = FastQ
                 trimmedItem = trimItem(item, optionDir)
             #if trimmedItem[0] not in optionDir['barcodes']:
                 if trimmedItem[0] == None:
@@ -206,8 +211,26 @@ def readFastq(fastqFile, optionDir):
             sys.stdout.write("Number of seq in {0} : {1}\n".format(k, len(v)/4))
     return trimBufferDict, statDict, optionDir
 
-def trimItem(item, optionDir, trimNumber = 24, barcodeNumber = 8):
+
+def trimItem(fastqItem, optionDir):
     """
+    manages different trim functions for different modes
+    """
+    if optionDir['MODE'] == 'default':
+        return stdTrimItem(fastqItem, optionDir)
+    elif optionDir['MODE'] == 'crspr':
+        return crsprTrimItem(fastqItem, optionDir)
+    else:
+        return stdTrimItem(fasqItem, optionDir)
+
+        
+
+def stdTrimItem(item, optionDir, trimNumber = 24, barcodeNumber = 8):
+    """
+    searches for Barcode and return Fastq item with sequence reverse
+    complemented and trimmed directly to first base of barcode
+    Only returns sequence if barcode is found in configuratin file.
+    Checks barcode and allows one occurenc of N with function sameKey
     """
                #              2+Spacer:Barcode:+4
     emPatSet = ['ACAGCAATATACTG','ACTG[\w]{8}ATCT']
@@ -218,11 +241,11 @@ def trimItem(item, optionDir, trimNumber = 24, barcodeNumber = 8):
     else:
         # adapterSeq = "AATATACTG"
         # mir30 + spacer TG
-        # adapterSeq = "ATCTCGTATGCCGTCTTCTGCTTG"
+        # adapterSeq = "ATCTCGTATGCCGTCTTCTGCTTG" #reverse comp
         # careful adjust trimNumber accordingly
         
         # adapter P7
-        #adapterSeq = 'ATCTCGTATGCCGTCTTCTGCTTG'
+        #adapterSeq = 'ATCTCGTATGCCGTCTTCTGCTTG' #reverse comp
         adapterSeq =  'ATCTCGTATGCC'
         patSet = precompAdapter(adapterSeq, optionDir)
 
@@ -230,6 +253,7 @@ def trimItem(item, optionDir, trimNumber = 24, barcodeNumber = 8):
     seq = item[1]
     Barcode = None
     #for testing reduced patSet
+    #pdb.set_trace()
     for pattern in patSet[len(patSet)-1:]:
         if pattern.search(seq):
             trimNumber = pattern.search(seq).start()
@@ -266,7 +290,7 @@ def trimItem(item, optionDir, trimNumber = 24, barcodeNumber = 8):
         Barcode = retItem[1][:8]
         # Barcode2 = reverseComplement(retItem[1][-8:])
         # Debugger
-        # if (Barcode2 != Barcode):
+        # if (Barcode2 != Barcode
         #    print "------------"
         #    print retItem
         #    print "Barcode: "+Barcode
@@ -290,8 +314,66 @@ def trimItem(item, optionDir, trimNumber = 24, barcodeNumber = 8):
                     #print "----"
                     return Barcode, retItem
     return None, item
-    
+   
+
+def crsprTrimItem(fastqItem, optionDir):
+    """
+    """
+    ## init fasqItem
+    Barcode = None
+    retItem = list(fastqItem)
+    seq = fastqItem[1]
+    ## init searchmask
+    if "adapter" in optionDir.keys():
+        adapterSeq = optionDir['adapter']
+        patSet = optionDir['precompiledSet']
+    else:
+        adapterSeq  = "cgtcctttccacaagatatataaagccaag".upper()
+        patSet = precompAdapter(adapterSeq, optionDir, clipFromTail=False)
+    ## search mask
+    #for pat in patSet[len(patSet)-1:]:
+    #    if pat.search(seq):
+    #        trimNumber = pat.search(seq).end()+24+8
+    #    else:
+    #        return None, fastqItem
+    ## hamming hack
+    foundAdapter = findPatInHammingDist(adapterSeq.upper(), seq, 4)
+    if foundAdapter:
+        for position in foundAdapter:
+            k = min(foundAdapter.keys())
+            trimNumber = foundAdapter[k][2]+24+8
+    else:
+        #print foundAdapter
+        return None, fastqItem
+
+    ## trimm for barcode
+    if trimNumber > len(seq):
+        return "TooShort", fastqItem
+    retItem[1] = fastqItem[1][:trimNumber]
+    retItem[3] = fastqItem[3][:trimNumber]
+    ## turnaround
+    retItem[1] = reverseComplement(retItem[1])
+    retItem[3] = retItem[3][::-1]
+    Barcode = retItem[1][:8]
+    #print Barcode
+    #print retItem
+    #print "...."
+    return Barcode, retItem
+
 ######Level three####################
+
+
+def findPatInHammingDist(pat, seq, maxdist):
+    #pdb.set_trace()
+    patlen = len(pat)
+    foundPat = {}
+    for i in range(len(seq)-patlen):
+        chunk = seq[i:i+patlen]
+        distObj = SeqComp(pat, chunk)
+        dist = distObj.get_ham_dist()
+        if dist <= maxdist:
+            foundPat[dist] = [dist, i, i+patlen]
+    return foundPat
 
 def reverseComplement(seq):
     """
@@ -342,17 +424,17 @@ def sameKey(cKey, keys2Check):
     else:
         return None
         
-def precompAdapter(adapterSeq, optionDir, reverse=True):
+def precompAdapter(adapterSeq, optionDir, clipFromTail=True):
     """
     precompiles the adapter into 
     regex up to the minimum length of adapterMinLen
     returns a list of the re objects
     """
     sys.stdout.write("calculating ....{0}\n".format(adapterSeq))
-    retList = []
+    retList = [re.compile(adapterSeq)]
     seq = adapterSeq
     while(len(seq) > optionDir['adapterMinLen']):
-        if reverse:
+        if clipFromTail:
             seq = seq[:len(seq)-1]
             retList.append(re.compile(seq))
             sys.stdout.write("calculating ....{0}\n".format(seq))
@@ -360,9 +442,6 @@ def precompAdapter(adapterSeq, optionDir, reverse=True):
             seq = seq[1:]
             retList.append(re.compile(seq))
     return retList
-
-
-
 
 def readConfig(optionDir):
     """
@@ -391,12 +470,14 @@ def setDefaultValues():
     standard Values settings
     seqMachineId is     @M01950 miseq and
                         @ST-K00207 hiseq
+
+                'adapter': ''#'ATCTCGTATGCCGTCTTCTGCTTG',\
     """
     ValueDir = {\
                 'oFile': ['temp','txt'],\
                 'verbose': True,\
-                'adapter': 'ATCTCGTATGCCGTCTTCTGCTTG',\
-                'adapterMinLen' : 10,\
+                'adapter': "CGTCCTTTCCACAAGATATATAAAGCCAAG",\
+                'adapterMinLen' : 30,\
                 'seqMachineId' : "auto",\
                 'MODE' : 'default',\
                 'maxChunkSize' : 200000000}#1073741824} # in Bytes; 1073741824 bytes = 1 Gigybyte
