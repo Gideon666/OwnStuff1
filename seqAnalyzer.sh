@@ -45,11 +45,13 @@ usage seqAnalyzer.sh [options] FastqReadfile DestinationFolder barcodeTextfile m
     \t\tpath to custom working Directory\n
     \t-j,--justSorting:\n
     \t\tsetting switches and breakpoints if you only
-        want to trimm an do the barcodesorting.\n"
+        want to trimm an do the barcodesorting.\n
+    \t-c, --crspr:\n
+    \t\tfor crpsr sequencing analysis.\n"
 
 #debugSwitches:
 # statistic cant run without maskcheck!!!
-trimming=true
+trimming=false
 cutting=true
 collapsing=true
 library=true
@@ -59,6 +61,7 @@ collapsing2=true
 maskcheck=true
 statistic=true
 
+crspr=false
 
 #default Value init
 rThreshold=10 # read threshold after barcode splitting
@@ -68,6 +71,7 @@ keep="F"
 itags="F"
 loop="TAGTGAAGCCACAGATGTA"
 mirSeq="GTATATTGCTGTTGACAGTGAGCG" #default 5'mirE
+u6prom="CTTGGCTTTATATATCTTGTGGAAAGGACG"
 workdir=false
 fastqlines=0
 ####################
@@ -125,6 +129,9 @@ do
         fastqlines="$2"
         shift
         ;;
+        -c|--crspr)
+        crspr=true
+        ;;
         *)
         break
         ;;
@@ -141,6 +148,8 @@ blatDestination="/home/mitschke/Data/Programms/BLAT/"
 itaglength=7
 
 adapterMask=""
+# revcomp Adapter
+crsprAdapter="ATCTCGTATGCCGTCTTCTGCTTG"
 
 echo -e "Source File  =\t${sourceFile}"
 echo -e "Destination  =\t${destination}"
@@ -158,8 +167,9 @@ if [[ "$workdir" == false ]]; then
     #workdir="/Data/PipeTmp/seqAnalyzer_25343/"
     #workdir="/Data/PipeTmp2/seqAnalyzer_AS_153875_SumUp/"
     #workdir="/Data/PipeTmp2/seqAnalyzer_AS_153877_DKFZRun3_sumUp/"
-    workdir="/Data/PipeTmp/seqAnalyzer_AS_171218/"
+    workdir="/Data/PipeTmp/seqAnalyzer_AS_171218_crspr_4dist/"
 fi
+
 mkdir -p $workdir
 statFile=${workdir}Stats.txt
 echo -e "#${1}\t${2}\t${3}\t${4}" > $statFile
@@ -183,7 +193,12 @@ scriptSource="/home/mitschke/Data/Scripts/shRNASeqAnalyzer/subScripts/"
 # options etc... -o outputfile -b barcodes -a adapter -s silentmode
 if [[ "$trimming" == true ]]; then
     echo "Trimming ..."
-    ${scriptSource}seqTrim.py -c "$barcodeFile" -d "${workdir}" -o "$1" -s "$sourceFile"
+    if [[ "$crspr" == true ]]; then
+        echo "Crspr..."
+        ${scriptSource}seqTrim.py -c "$barcodeFile" -d "${workdir}" -o "$1" -m "crspr" -s "$sourceFile"
+    else
+        ${scriptSource}seqTrim.py -c "$barcodeFile" -d "${workdir}" -o "$1" -s "$sourceFile"
+    fi
 fi
 
 ## 2.###############
@@ -203,6 +218,7 @@ gawk 'BEGIN {n=0}; {n+=$1}; END {print n, "total"}' "${workdir}_highBarcodes.txt
 ## 3.###############
 # SeqCutOut
 # guide loop target cutout of highest barcodes
+# crps cutout
 highBC=$(gawk ' {if($2 !="total") print $2;}' "${workdir}_highBarcodes.txt") 
 if [[ "$cutting" == true ]]; then
     echo "Cutting ...${gapsLoop}!!"
@@ -210,8 +226,13 @@ if [[ "$cutting" == true ]]; then
         echo "Cutting for iTags!"
         ${scriptSource}seqCutOut.py -m "i" -g "$gapsLoop" -c "$barcodeFile" $highBC
     else
-        echo "Cutting without iTags!"
-        ${scriptSource}seqCutOut.py -g "$gapsLoop" -c "$barcodeFile" $highBC
+        if [[ "$crspr" == true ]]; then
+            echo "Crspr cutting!"
+            ${scriptSource}seqCutOut.py -g "$gapsLoop" -c "$barcodeFile" -m "c" -r "$u6prom" $highBC
+        else
+            echo "Cutting without iTags!"
+            ${scriptSource}seqCutOut.py -g "$gapsLoop" -c "$barcodeFile" $highBC
+        fi
     fi
 fi
 
@@ -262,8 +283,16 @@ if [[ "$blating" == true ]]; then
         echo $poolfile
         if [[ $poolfile != "" ]]; then
             echo "$line Blat against $poolfile"
-            ${blatDestination}blat -oneOff=1 -t=dna -q=dna -out=pslx -dots=5000 \
+            if [[ "$crspr" == true ]]; then
+                echo "Blatting crspr..."
+                ${blatDestination}blat -oneOff=1 -t=dna -q=dna -out=pslx -dots=5000 \
+                    -minScore=18 -tileSize=10 -minMatch=1\
+                   "${workdir}${poolfile}_pool.fasta" "$line" "${workdir}${barcode}_Pool(${poolfile})_BL.pslx"
+
+            else
+                ${blatDestination}blat -oneOff=1 -t=dna -q=dna -out=pslx -dots=5000 \
                  "${workdir}${poolfile}_pool.fasta" "$line" "${workdir}${barcode}_Pool(${poolfile})_BL.pslx"
+            fi
         #else
         #    echo "$line Blat agains All"
         #    ${blatDestination}blat -oneOff=1 -t=dna -q=dna -out=pslx -dots=5000 \
@@ -277,7 +306,11 @@ fi
 if [[ "$sorting" == true ]]; then
     echo "sorting ..."
     inputF=$(ls ${workdir}*_BL.pslx)
-    ${scriptSource}sortBlatOutput.sh -n 10 -l "$mappingFile" $inputF
+    if [[ "$crspr" == true ]]; then
+        ${scriptSource}sortBlatOutput.sh -a 20 -n 10 -l "$mappingFile" $inputF
+    else    
+        ${scriptSource}sortBlatOutput.sh -n 10 -l "$mappingFile" $inputF
+    fi
 fi
 
 ## 7.#############

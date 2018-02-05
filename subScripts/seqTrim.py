@@ -337,7 +337,7 @@ def crsprTrimItem(fastqItem, optionDir):
     #    else:
     #        return None, fastqItem
     ## hamming hack
-    foundAdapter = findPatInHammingDist(adapterSeq.upper(), seq, 4)
+    foundAdapter = findPatInHammingDist(adapterSeq.upper(), seq, 2)
     if foundAdapter:
         for position in foundAdapter:
             k = min(foundAdapter.keys())

@@ -38,12 +38,9 @@ class Test_regExLoop(object):
                 70, 90, optionDirCrspr) ==\
                 'GCATGCGATCTATCCGTCGG')
 
-
-
-
 class Test_pswmLoop(object):
 
-    def test_standard_matching(self, crsprSeq, optionDirCrspr):
+    def test_standard_matching_crspr(self, crsprSeq, optionDirCrspr):
         optionDirCrspr['loopMM'] = 0
         assert(SCO.pswmLoop(crsprSeq,\
                 "CTTGGCTTTATATATCTTGTGGAAAGGACG",\
@@ -53,7 +50,7 @@ class Test_pswmLoop(object):
                 ) == 'GCATGCGATCTATCCGTCGG')
 
         
-    def test_mm_matching(self, crsprSeq, optionDirCrspr):
+    def test_mm_matching_crspr(self, crsprSeq, optionDirCrspr):
         optionDirCrspr['loopMM'] = 2 # changed TT to AA
         assert(SCO.pswmLoop(crsprSeq,\
                 "CTTGGCTTTATATATC"+\

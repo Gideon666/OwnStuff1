@@ -190,7 +190,8 @@ def pswmLoop(seq, loop, startPos, endPos, optionDir = {}):
     lS = optionDir['patternCutLeft']
     rS = optionDir['patternCutRight']
     #minScore = 18.0
-    print minScore
+    #print minScore
+    #print loop
     loopmask = ps.PSWM([loop])
     sliceList = slwApproach(seq, len(loop))
     for pos in xrange(len(sliceList)):
@@ -201,7 +202,7 @@ def pswmLoop(seq, loop, startPos, endPos, optionDir = {}):
                 #print len(seq)
                 #print seq[pos-lS:pos+len(loop)+rS]
                 #print len(seq[pos-lS:pos+len(loop)+rS])
-            print "found"
+            #print "found"
             return seq[pos-lS:pos+len(loop)+rS]
     return seq[startPos:endPos]
 
@@ -337,9 +338,10 @@ def main():
     optionDir = setDefaultValues()
     try:
         opts, args = getopt.getopt(sys.argv[1:],\
-                "h, o:, m:, c:, l:, a, g:",\
+                "h, o:, m:, c:, l:, a, g:, r:",\
                 ["help", "output=", "mode=", "configFile=",\
-                 "loopMissMatches=", "maskLoop", "gabIns="])
+                 "loopMissMatches=", "maskLoop", "gabIns=",\
+                 "anchor="])
     except getopt.Error, msg:
         sys.stdout.write(msg + "\n")
         sys.stdout.write("For help, use -h!\n")
@@ -362,6 +364,9 @@ def main():
             optionDir['loopMM'] = string.atoi(string.strip(a))
         if o in ['-a', '--maskLoop']:
             optionDir['maskLoop'] = True
+        if o in ['-r', '--anchor']:
+            optionDir['ANCHOR'] = string.strip(a).upper()
+            sys.stdout.write("Anchor for cutout, set to: {0}\n".format(optionDir['ANCHOR']))
         if o in ['-g', '--gabIns']:
             print "gabs:"+str(a)
             optionDir['gabIns'] = string.atoi(string.strip(a))
