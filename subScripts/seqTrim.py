@@ -124,12 +124,13 @@ def readFastq(fastqFile, optionDir):
     trimBufferDict['_OUT_'] = []
     with open(fastqFile, 'r') as ihandle:
         item[0] = string.strip(ihandle.readline())
-        if MacCode=='auto':
-            MacCode = string.split(item[0], sep=":")[0]
-            sys.stdout.write("Machine Code : {0}\n".format(MacCode))
-            if not(MacCode.startswith('@')):
-                sys.stdout.write("Warning! Possible FastQFile corruption!\n")
-                sys.stdout.write("Sequencer Machine Code : {0}".format(MacCode))
+        MacCode = mac_code_check(item[0], MacCode)
+        #if MacCode=='auto':
+        #    MacCode = string.split(item[0], sep=":")[0]
+        #    sys.stdout.write("Machine Code : {0}\n".format(MacCode))
+        #    if not(MacCode.startswith('@')):
+        #        sys.stdout.write("Warning! Possible FastQFile corruption!\n")
+        #        sys.stdout.write("Sequencer Machine Code : {0}".format(MacCode))
         for line in ihandle:
             #check dictionary size
             if loopCounter >= 100000:
@@ -210,6 +211,27 @@ def readFastq(fastqFile, optionDir):
         for k, v in trimBufferDict.items():
             sys.stdout.write("Number of seq in {0} : {1}\n".format(k, len(v)/4))
     return trimBufferDict, statDict, optionDir
+
+##################
+## Level Threee ##
+##################
+
+########################
+#### readFastq Functions
+
+def mac_code_check(input_line, mac_code):
+    if mac_code ='auto':
+        mac_code = string.split(input_line, sep=":")[0]
+        sys.stdout.write("Machine Code : {0}\n".format(mac_code))
+        if not(mac_code.statswith('@')):
+            sys.stdout.write("Warning! Possible FastQFile corruption!\n")
+            sys.stdout.write("Sequencer Machine Code : {0}".format(mac_code))
+    return mac_code
+    
+
+
+########function
+########endblock
 
 
 def trimItem(fastqItem, optionDir):
@@ -319,7 +341,11 @@ def stdTrimItem(item, optionDir, trimNumber = 24, barcodeNumber = 8):
 def crsprTrimItem(fastqItem, optionDir):
     """
     """
-    ## init fasqItem
+    ### init
+    allowedMM = optionDir['ALLOWEDMM']
+    distance_to_barcode = 83
+    #distance_to_barcode = 24
+    ## init fastqItem
     Barcode = None
     retItem = list(fastqItem)
     seq = fastqItem[1]
@@ -337,11 +363,11 @@ def crsprTrimItem(fastqItem, optionDir):
     #    else:
     #        return None, fastqItem
     ## hamming hack
-    foundAdapter = findPatInHammingDist(adapterSeq.upper(), seq, 2)
+    foundAdapter = findPatInHammingDist(adapterSeq.upper(), seq, allowedMM)
     if foundAdapter:
         for position in foundAdapter:
             k = min(foundAdapter.keys())
-            trimNumber = foundAdapter[k][2]+24+8
+            trimNumber = foundAdapter[k][2]+distance_to_barcode+8
     else:
         #print foundAdapter
         return None, fastqItem
@@ -480,6 +506,8 @@ def setDefaultValues():
                 'adapterMinLen' : 30,\
                 'seqMachineId' : "auto",\
                 'MODE' : 'default',\
+                'ALLOWEDMM' : 2,\
+                'DISTANCEBARCODE' : 24,\
                 'maxChunkSize' : 200000000}#1073741824} # in Bytes; 1073741824 bytes = 1 Gigybyte
     return ValueDir
 
