@@ -116,7 +116,7 @@ def readFastq(fastqFile, optionDir):
     trimBufferKeys = []
     trimBufferDict = {}
     BarcodeDict = {}
-    statDict = {}	
+    #statDict = {}	
     item = [None]*4
     counter = 1
     loopCounter = 0
@@ -125,28 +125,24 @@ def readFastq(fastqFile, optionDir):
     with open(fastqFile, 'r') as ihandle:
         item[0] = string.strip(ihandle.readline())
         MacCode = mac_code_check(item[0], MacCode)
-        #if MacCode=='auto':
-        #    MacCode = string.split(item[0], sep=":")[0]
-        #    sys.stdout.write("Machine Code : {0}\n".format(MacCode))
-        #    if not(MacCode.startswith('@')):
-        #        sys.stdout.write("Warning! Possible FastQFile corruption!\n")
-        #        sys.stdout.write("Sequencer Machine Code : {0}".format(MacCode))
         for line in ihandle:
             #check dictionary size
             if loopCounter >= 100000:
                 loopCounter = 0
                 dictsize = getsizeof(trimBufferDict)
                 if dictsize >= optionDir['maxChunkSize']:
-                    print "Size of trimBufferDict : {0}".format(str(dictsize))
+                    if optionDir['verbose']:
+                        sys.stdout.write("Size of trimBufferDict : {0}\n".format(str(dictsize)))
+                        sys.stdout.write("Saving Data...\n")
                     saveBarcodedFastQ(trimBufferDict, optionDir)
                     trimBufferDict = {}
                     trimBufferDict['_OUT_'] = []
-                    statDict = {}
+                    #statDict = {}
             if line.startswith(MacCode):
                 loopCounter +=1
                 ## new FastQ Item, Item[0] = Barcode, Item[1] = FastQ
                 trimmedItem = trimItem(item, optionDir)
-            #if trimmedItem[0] not in optionDir['barcodes']:
+                #if trimmedItem[0] not in optionDir['barcodes']:
                 if trimmedItem[0] == None:
                     trimBufferDict['_OUT_'].extend(trimmedItem[1])
                     counter = 0
@@ -157,23 +153,12 @@ def readFastq(fastqFile, optionDir):
                 # change from normal directory to shelve
                 if trimBufferDict.has_key(trimmedItem[0]):
                     trimBufferDict[trimmedItem[0]].extend(trimmedItem[1])
-                    statDict[trimmedItem[0]] += 1
+                    #statDict[trimmedItem[0]] += 1
                 else:
-                    print "Key :{0} added!".format(str(trimmedItem[0]))
+                    sys.stdout.write("Key :{0} added!\n".format(str(trimmedItem[0])))
                     trimBufferDict[trimmedItem[0]] = []
                     trimBufferDict[trimmedItem[0]].extend(trimmedItem[1])
-                    statDict[trimmedItem[0]] = 1
-                #if trimmedItem[0] in trimBufferKeys:
-                #    temp = trimBufferDict[trimmedItem[0]]
-                #    temp.extend(trimmedItem[1])
-                #    trimBufferDict[trimmedItem[0]] = temp
-                #    statDict[trimmedItem[0]] += 1
-                #else:
-                #    trimBufferKeys.append(trimmedItem[0])
-                #    temp = []
-                #    temp.extend(trimmedItem[1])
-                #    trimBufferDict[trimmedItem[0]] = temp
-                #    statDict[trimmedItem[0]] = 1
+                    #statDict[trimmedItem[0]] = 1
                 counter = 0
                 item = [None]*4
             item[counter] = string.strip(line)
@@ -188,32 +173,22 @@ def readFastq(fastqFile, optionDir):
             # again the change
             if trimBufferDict.has_key(trimmedItem[0]):
                 trimBufferDict[trimmedItem[0]].extend(trimmedItem[1])
-                statDict[trimmedItem[0]] += 1
+                #statDict[trimmedItem[0]] += 1
             else:
                 trimBufferDict[trimmedItem[0]] = []
                 trimBufferDict[trimmedItem[0]].extend(trimmedItem[1])
-                statDict[trimmedItem[0]] = 1
-            #if trimmedItem[0] in trimBufferKeys:
-            #    temp = trimBufferDict[trimmedItem[0]]
-            #    temp.extend(trimmedItem[1])
-            #    trimBufferDict[trimmedItem[0]] = temp
-            #    statDict[trimmedItem[0]] += 1
-            #else:
-            #    trimBufferKeys.append(trimmedItem[0])
-            #    temp = []
-            #    temp.extend(trimmedItem[1])
-            #    trimBufferDict[trimmedItem[0]] = temp
-            #    statDict[trimmedItem[0]] = 1
+                #statDict[trimmedItem[0]] = 1
                 
-    ##### read in terminated! #####
+    ##### read_in terminated! #####
     if optionDir['verbose']:
         sys.stdout.write("------------\n")
         for k, v in trimBufferDict.items():
             sys.stdout.write("Number of seq in {0} : {1}\n".format(k, len(v)/4))
-    return trimBufferDict, statDict, optionDir
+    #return trimBufferDict, statDict, optionDir
+    return trimBufferDict, optionDir
 
 ##################
-## Level Threee ##
+## Level Three ##
 ##################
 
 ########################
@@ -228,7 +203,6 @@ def mac_code_check(input_line, mac_code):
             sys.stdout.write("Sequencer Machine Code : {0}".format(mac_code))
     return mac_code
     
-
 
 ########function
 ########endblock
@@ -251,8 +225,8 @@ def stdTrimItem(item, optionDir, trimNumber = 24, barcodeNumber = 8):
     """
     searches for Barcode and return Fastq item with sequence reverse
     complemented and trimmed directly to first base of barcode
-    Only returns sequence if barcode is found in configuratin file.
-    Checks barcode and allows one occurenc of N with function sameKey
+    Only returns sequence if barcode is found in configuration file.
+    Checks barcode and allows one occurence of N with function sameKey
     """
                #              2+Spacer:Barcode:+4
     emPatSet = ['ACAGCAATATACTG','ACTG[\w]{8}ATCT']
