@@ -51,7 +51,7 @@ usage seqAnalyzer.sh [options] FastqReadfile DestinationFolder barcodeTextfile m
 
 #debugSwitches:
 # statistic cant run without maskcheck!!!
-trimming=false
+trimming=true
 cutting=true
 collapsing=true
 library=true
@@ -72,6 +72,7 @@ itags="F"
 loop="TAGTGAAGCCACAGATGTA"
 mirSeq="GTATATTGCTGTTGACAGTGAGCG" #default 5'mirE
 u6prom="CTTGGCTTTATATATCTTGTGGAAAGGACG"
+crspr_scaff="TTTTAACTTGCTATTTCTAGCTCTAAAA" # reverse
 workdir=false
 fastqlines=0
 ####################
@@ -162,12 +163,14 @@ echo -e "Absolute d.  =\t${absdest}"
 if [[ "$workdir" == false ]]; then
     #workdir="/tmp/seqAnalyzer_$$/"
     #workdir="/Data/PipeTmp/seqAnalyzer_$$/"
+    workdir="Data/PipeTmp/seqAnalyzer_testOutput/"
     #workdir="/Data/PipeTmp/seqAnalyzer_AS_112997_sumUp/"
     #workdir="/Data/PipeTmp/seqAnalyzer3_sumUp/"
     #workdir="/Data/PipeTmp/seqAnalyzer_25343/"
     #workdir="/Data/PipeTmp2/seqAnalyzer_AS_153875_SumUp/"
     #workdir="/Data/PipeTmp2/seqAnalyzer_AS_153877_DKFZRun3_sumUp/"
-    workdir="/Data/PipeTmp/seqAnalyzer_AS_171218_crspr_4dist/"
+    #workdir="/Data/PipeTmp/seqAnalyzer_AS_171218_crspr_4dist/"
+    #workdir="/Data/PipeTmp/seqAnalyzer_AS_171218_crspr_scaff_2dist/"
 fi
 
 mkdir -p $workdir
@@ -195,7 +198,8 @@ if [[ "$trimming" == true ]]; then
     echo "Trimming ..."
     if [[ "$crspr" == true ]]; then
         echo "Crspr..."
-        ${scriptSource}seqTrim.py -c "$barcodeFile" -d "${workdir}" -o "$1" -m "crspr" -s "$sourceFile"
+        ${scriptSource}seqTrim.py -c "$barcodeFile" -d "${workdir}" -o "$1" \
+            -a "$crspr_scaff" -m "crspr" -s "$sourceFile"
     else
         ${scriptSource}seqTrim.py -c "$barcodeFile" -d "${workdir}" -o "$1" -s "$sourceFile"
     fi
