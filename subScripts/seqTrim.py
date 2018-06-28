@@ -140,24 +140,25 @@ def readFastq(fastqFile, optionDir):
                     #statDict = {}
             if line.startswith(MacCode):
                 loopCounter +=1
+                trimBufferDict = add_to_trimBufferDict(item, trimBufferDict, optionDir)
                 ## new FastQ Item, Item[0] = Barcode, Item[1] = FastQ
-                trimmedItem = trimItem(item, optionDir)
+                #trimmedItem = trimItem(item, optionDir)
                 #if trimmedItem[0] not in optionDir['barcodes']:
-                if trimmedItem[0] == None:
-                    trimBufferDict['_OUT_'].extend(trimmedItem[1])
-                    counter = 0
-                    item = [None] * 4
-                    item[counter] = string.strip(line)
-                    counter += 1
-                    continue
+                #if trimmedItem[0] == None:
+                #    trimBufferDict['_OUT_'].extend(trimmedItem[1])
+                #    counter = 0
+                #    item = [None] * 4
+                #    item[counter] = string.strip(line)
+                #    counter += 1
+                #    continue
                 # change from normal directory to shelve
-                if trimBufferDict.has_key(trimmedItem[0]):
-                    trimBufferDict[trimmedItem[0]].extend(trimmedItem[1])
-                    #statDict[trimmedItem[0]] += 1
-                else:
-                    sys.stdout.write("Key :{0} added!\n".format(str(trimmedItem[0])))
-                    trimBufferDict[trimmedItem[0]] = []
-                    trimBufferDict[trimmedItem[0]].extend(trimmedItem[1])
+                #if trimBufferDict.has_key(trimmedItem[0]):
+                #    trimBufferDict[trimmedItem[0]].extend(trimmedItem[1])
+                #    #statDict[trimmedItem[0]] += 1
+                #else:
+                #    sys.stdout.write("Key :{0} added!\n".format(str(trimmedItem[0])))
+                #    trimBufferDict[trimmedItem[0]] = []
+                #    trimBufferDict[trimmedItem[0]].extend(trimmedItem[1])
                     #statDict[trimmedItem[0]] = 1
                 counter = 0
                 item = [None]*4
@@ -195,14 +196,28 @@ def readFastq(fastqFile, optionDir):
 #### readFastq Functions
 
 def mac_code_check(input_line, mac_code):
-    if mac_code ='auto':
+    if mac_code == 'auto':
         mac_code = string.split(input_line, sep=":")[0]
         sys.stdout.write("Machine Code : {0}\n".format(mac_code))
-        if not(mac_code.statswith('@')):
+        if not(mac_code.startswith('@')):
             sys.stdout.write("Warning! Possible FastQFile corruption!\n")
             sys.stdout.write("Sequencer Machine Code : {0}".format(mac_code))
     return mac_code
     
+
+def add_to_trimBufferDict(item, trimBufferDict, optionDir):
+    """
+    """
+    trimmedItem = trimItem(item, optionDir)
+    if trimmedItem[0] == None:
+        bc_key = '_OUT_'
+    else:
+        bc_key = trimmedItem[0]
+    barcode_list = trimBufferDict.get(bc_key, [])
+    barcode_list.extend(trimmedItem[1])
+    trimBufferDict[bc_key] = barcode_list
+    return trimBufferDict
+
 
 ########function
 ########endblock
