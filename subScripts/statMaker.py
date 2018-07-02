@@ -7,6 +7,7 @@ usage:
     ./statMaker.py [options] -s statFile -e _pStat.b -c barcodeFile
 """
 
+import shelve
 import sys, string, os, getopt
 import datetime
 import re
@@ -28,6 +29,7 @@ def manage(args, optionDir):
     """
     #pdb.set_trace()
     calcStats(args, optionDir)
+    optionDir['firstBlatData_{0}'.format(optionDir['check_for_Ns'])].close()
 
 def processArgs(args, optionDir):
     """
@@ -53,7 +55,7 @@ def calcStats(args, optionDir):
     writeCSVStats(args, optionDir)
     sys.stdout.write('CSVStats written!\n')
     args, optionDir = getData(args, optionDir)
-    sys.stdout.write('CSVStats written!\n')
+    sys.stdout.write('read Blat data!\n')
     makePlots(args, optionDir)
     sys.stdout.write('Plots written!\n')
     writeCSVhairpins(args, optionDir)
@@ -144,7 +146,7 @@ def readInStatFile(eStatfile):
     LN : Second collapse BLAT Reads : 2
     LR : Second collapse total Reads : 1
     MB : mask(loop) in barcode split files
-    VB : mirsequence in bacode split files
+    VB : mirsequence in barcode split files
     
     e.g
     BC  ACGTACGT        10000
@@ -248,7 +250,9 @@ def getData(args, optionDir, pat=None, LC="BL"):
     """
     read first blat results
     """
-    bl = {}
+    N_check = optionDir['check_for_Ns']
+    # bl = {}
+    bl = shelve.open(optionDir['destination']+"statMaker_shelve.tmp",writeback=True)
     list = []
     if not(pat):
         pat = '(\w{5,8})_.*%s.pslx' % LC
@@ -264,8 +268,10 @@ def getData(args, optionDir, pat=None, LC="BL"):
             if fName[:8] not in optionDir['config'].keys():
                 continue
             if optionDir['verbose'] : sys.stdout.write("Loading : %s\n"% (dirpath+fName))
-            bl[barc.group(1)] = loadIn(dirpath+fName, args, optionDir)
-    optionDir['firstBlatData'] = bl
+            #bl[barc.group(1)] = loadIn(dirpath+fName, args, optionDir)
+            blat_data_this = loadIn(dirpath+fName, args, optionDir)
+            bl.update(getNumbersFromBlat(barc.group(1), blat_data_this, N=N_check, M=0))
+    optionDir['firstBlatData_{0}'.format(str(N_check))] = bl
     return args, optionDir
 
 def makePlots(args, optionDir):
@@ -275,7 +281,8 @@ def makePlots(args, optionDir):
     DataDict = optionDir['NumberDict']
     TotalDict= optionDir['TotalsDict']
     blatResDict = {}
-    blatResDict2 = getNumbersFromBlat(args, optionDir, N=10, M=0)
+    #blatResDict2 = getNumbersFromBlat(args, optionDir, N=10, M=0)
+    blatResDict2 = optionDir['firstBlatData_{0}'.format(str(optionDir['check_for_Ns']))]
     
     for k, v in DataDict.items():
         pD = getPD(k, args, optionDir)
@@ -611,18 +618,19 @@ def prepareShReadData(blatResDict, optionDir):
     return retDict
 
 
-def getNumbersFromBlat(args, optionDir, N=0, M=0):
+def getNumbersFromBlat(barcode, hitList, N=0, M=0):
     """
     filters data from the blat result file pslx.
     in this case the first blat file to make a comparison
     possible.
     """
     retDict = {}
-    sDict = optionDir['firstBlatData']
-    for barcode, hitList in sDict.items():
-        retDict[barcode] = {}
+    #sDict = optionDir['firstBlatData']
+    retDict[barcode] = {}
+    for hit in hitList:
+    #for barcode, hitList in sDict.items():
         #print barcode, hitList
-        for hit in hitList:
+        #for hit in hitList:
             match = string.atoi(hit[0])
             mm = string.atoi(hit[1])
             ns = string.atoi(hit[3])
@@ -702,6 +710,7 @@ def setDefaultValues():
                 'destination' : "./",\
                 'iTags': False,\
                 'verbose': True,\
+                'check_for_Ns': 10,\
                 'colorSet' : [\
                 'yellowgreen', 'gold', 'lightskyblue', 'lightcoral', 'darksalmon',\
                 'orangered', 'palegoldenrod','azure', 'darkorchid', 'firebrick',\
