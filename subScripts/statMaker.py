@@ -306,7 +306,7 @@ def makePlots(args, optionDir):
 
     #### generell things
     plt.tight_layout()
-    plt.savefig(optionDir['destination']+"/"+optionDir['oFile'][0]+"_OV.png")
+    plt.savefig(optionDir['destination']+"/"+optionDir['oFile'][0]+"_OV.svg")
     
     #### plot init 
     #### Dot Plots ##############################################################################
@@ -337,7 +337,7 @@ def makePlots(args, optionDir):
             #plotDotPlot(axesList[i+grpSize-1], plotDict, split, args, optionDir, mode=["shOnly"]) 
     #### generell things
         plt.tight_layout()
-        plt.savefig(optionDir['destination']+"/"+optionDir['oFile'][0]+"_grp"+str(ind)+"_dotPlot.png")
+        plt.savefig(optionDir['destination']+"/"+optionDir['oFile'][0]+"_grp"+str(ind)+"_dotPlot.svg")
     print groups
 
 def makePie(ax, DataDict, TotalDict, args, optionDir, title="", LC=('BC', 'BR')):
