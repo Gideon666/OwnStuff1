@@ -51,13 +51,13 @@ usage seqAnalyzer.sh [options] FastqReadfile DestinationFolder barcodeTextfile m
 
 #debugSwitches:
 # statistic cant run without maskcheck!!!
-trimming=true
-cutting=true
-collapsing=true
-library=true
-blating=true
-sorting=true
-collapsing2=true
+trimming=false
+cutting=false
+collapsing=false
+library=false
+blating=false
+sorting=false
+collapsing2=false
 maskcheck=true
 statistic=true
 
@@ -126,6 +126,18 @@ do
         maskcheck=false
         statistic=false
         ;;
+        -n|--nextSeq)
+        keep=true
+        trimming=false
+        cutting=true
+        collapsing=true
+        library=true
+        blating=true
+        sorting=true
+        collapsing2=true
+        maskcheck=true
+        statistic=true
+        ;;
         -q|--fastqlines)
         fastqlines="$2"
         shift
@@ -163,14 +175,15 @@ echo -e "Absolute d.  =\t${absdest}"
 if [[ "$workdir" == false ]]; then
     #workdir="/tmp/seqAnalyzer_$$/"
     #workdir="/Data/PipeTmp/seqAnalyzer_$$/"
-    workdir="Data/PipeTmp/seqAnalyzer_testOutput/"
+    #workdir="/Data/PipeTmp/seqAnalyzer_testOutput/"
     #workdir="/Data/PipeTmp/seqAnalyzer_AS_112997_sumUp/"
     #workdir="/Data/PipeTmp/seqAnalyzer3_sumUp/"
     #workdir="/Data/PipeTmp/seqAnalyzer_25343/"
     #workdir="/Data/PipeTmp2/seqAnalyzer_AS_153875_SumUp/"
     #workdir="/Data/PipeTmp2/seqAnalyzer_AS_153877_DKFZRun3_sumUp/"
     #workdir="/Data/PipeTmp/seqAnalyzer_AS_171218_crspr_4dist/"
-    #workdir="/Data/PipeTmp/seqAnalyzer_AS_171218_crspr_scaff_2dist/"
+    #workdir="/Data/PipeTmp/seqAnalyzer_AS_171218_crspr_scaff_2dist/"i
+    workdir="/Data/PipeTmp/seqAnalyzer_NS_180425/"
 fi
 
 mkdir -p $workdir
@@ -210,6 +223,8 @@ fi
 # paste all Files with more than $rThreshold reads in a txt file, default 100000
 # default now 0 
 countlist=$(gawk ' /^[^#@]/ {print $2}' "$barcodeFile")
+# clear file
+>"${workdir}_highBarcodes.txt"
 
 for bc in $countlist;
     do
@@ -306,7 +321,7 @@ if [[ "$blating" == true ]]; then
 fi
 
 ## 6.##############
-#filter blat results
+#filter BLAT results
 if [[ "$sorting" == true ]]; then
     echo "sorting ..."
     inputF=$(ls ${workdir}*_BL.pslx)
@@ -318,7 +333,7 @@ if [[ "$sorting" == true ]]; then
 fi
 
 ## 7.#############
-#collapse Blat results again and plots graphs
+#collapse BLAT results again and plots graphs
 if [[ "$collapsing2" == true ]]; then
     echo "collapsing2 ..."
     inputP=$(ls ${workdir}*_HF.pslx)
