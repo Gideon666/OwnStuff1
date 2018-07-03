@@ -29,7 +29,7 @@ def manage(args, optionDir):
     """
     #pdb.set_trace()
     calcStats(args, optionDir)
-    optionDir['firstBlatData_{0}'.format(optionDir['check_for_Ns'])].close()
+    clean_up(args, optionDir)
 
 def processArgs(args, optionDir):
     """
@@ -60,6 +60,11 @@ def calcStats(args, optionDir):
     sys.stdout.write('Plots written!\n')
     writeCSVhairpins(args, optionDir)
     sys.stdout.write('CSVhairpins written!\n')
+
+def clean_up(args, optionDir):
+    optionDir['firstBlatData_{0}'.format(optionDir['check_for_Ns'])].close()
+    os.remove(optionDir['destination']+"statMaker_shelve.tmp")
+
 
 def processStatFile(eStatfile):
     """
