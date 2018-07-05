@@ -241,7 +241,7 @@ def regExLoop(seq, loop, startPos, endPos, optionDir = {}):
             print retSeq
         else:    
             retSeq = seq[startPos:endPos]
-        sys.stdout.write("Warning in regExLoop!\nPattern not found!\n")
+        #sys.stdout.write("Warning in regExLoop!\nPattern not found!\n")
     return retSeq
 
 def reverseComplement(seq):
