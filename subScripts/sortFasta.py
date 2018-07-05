@@ -33,26 +33,25 @@ def sortA(a):
     header = ""
     Poolheader = ""
     seq = ""
-    ihandle = open(a)
-    for line in ihandle:
-        mLine = string.strip(line)
-        if mLine.startswith(">"):
-            if Poolheader in retDict.keys():
-                retDict[Poolheader].append([header, seq])
+    with open(a, "r") as ihandle:
+    #ihandle = open(a)
+        for line in ihandle:
+            mLine = string.strip(line)
+            if mLine.startswith(">"):
+                if Poolheader in retDict.keys():
+                    retDict[Poolheader].append([header, seq])
+                else:
+                    retDict[Poolheader] = [[header,seq]]
+                Poolheader = string.split(mLine, sep=":")[1]
+                header = mLine
+                seq = ""
             else:
-                retDict[Poolheader] = [[header,seq]]
-            Poolheader = string.split(mLine, sep=":")[1]
-            header = mLine
-            seq = ""
+                seq += mLine
 
+        if Poolheader in retDict.keys():
+            retDict[Poolheader].append([header, seq])
         else:
-            seq += mLine
-
-    if Poolheader in retDict.keys():
-        retDict[Poolheader].append([header, seq])
-    else:
-        retDict[Poolheader] = [[header,seq]]
-    ihandle.close()
+            retDict[Poolheader] = [[header,seq]]
     return retDict
 
 def writeSoDi(sortingDict, optionDir):
