@@ -301,6 +301,8 @@ if [[ "$blating" == true ]]; then
         barcode=${barcode#*_BC_}
         poolfile=$(gawk -v b=$barcode '{if($2==b){ print $3; exit}}' "$barcodeFile")
         echo $poolfile
+        # creates multi_fasta_files if necessary
+        ${workdir}check_pool_file.sh (${poolfile}
         if [[ $poolfile != "" ]]; then
             echo "$line Blat against $poolfile"
             if [[ "$crspr" == true ]]; then
