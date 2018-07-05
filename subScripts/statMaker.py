@@ -62,9 +62,9 @@ def calcStats(args, optionDir):
     sys.stdout.write('CSVhairpins written!\n')
 
 def clean_up(args, optionDir):
-    optionDir['firstBlatData_{0}'.format(optionDir['check_for_Ns'])].close()
-    os.remove(optionDir['destination']+"statMaker_shelve.tmp")
-
+    #optionDir['firstBlatData_{0}'.format(optionDir['check_for_Ns'])].close()
+    #os.remove(optionDir['destination']+"statMaker_shelve.tmp")
+    pass
 
 def processStatFile(eStatfile):
     """
@@ -256,8 +256,8 @@ def getData(args, optionDir, pat=None, LC="BL"):
     read first blat results
     """
     N_check = optionDir['check_for_Ns']
-    # bl = {}
-    bl = shelve.open(optionDir['destination']+"statMaker_shelve.tmp",writeback=True)
+    bl = {}
+    #bl = shelve.open(optionDir['destination']+"statMaker_shelve.tmp",writeback=True)
     list = []
     if not(pat):
         pat = '(\w{5,8})_.*%s.pslx' % LC
@@ -265,7 +265,7 @@ def getData(args, optionDir, pat=None, LC="BL"):
         list.extend(filenames)
         break
     if optionDir['verbose']:
-        sys.stdout.write("Loading list for getData:\n{0}\n".format(str(list)))
+        #sys.stdout.write("Loading list for getData:\n{0}\n".format(str(list)))
         sys.stdout.write("config list:\t{0}\n".format(optionDir['config'].keys()))
     for fName in list:
         barc = re.search(pat, fName)
