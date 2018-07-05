@@ -51,13 +51,13 @@ usage seqAnalyzer.sh [options] FastqReadfile DestinationFolder barcodeTextfile m
 
 #debugSwitches:
 # statistic cant run without maskcheck!!!
-trimming=false
-cutting=false
-collapsing=false
-library=false
-blating=false
-sorting=false
-collapsing2=false
+trimming=true
+cutting=true
+collapsing=true
+library=true
+blating=true
+sorting=true
+collapsing2=true
 maskcheck=true
 statistic=true
 
@@ -174,7 +174,7 @@ absdest="${absdest}/$(basename "${destination}")"
 echo -e "Absolute d.  =\t${absdest}"
 if [[ "$workdir" == false ]]; then
     #workdir="/tmp/seqAnalyzer_$$/"
-    #workdir="/Data/PipeTmp/seqAnalyzer_$$/"
+    workdir="/Data/PipeTmp/seqAnalyzer_$$/"
     #workdir="/Data/PipeTmp/seqAnalyzer_testOutput/"
     #workdir="/Data/PipeTmp/seqAnalyzer_AS_112997_sumUp/"
     #workdir="/Data/PipeTmp/seqAnalyzer3_sumUp/"
@@ -183,7 +183,8 @@ if [[ "$workdir" == false ]]; then
     #workdir="/Data/PipeTmp2/seqAnalyzer_AS_153877_DKFZRun3_sumUp/"
     #workdir="/Data/PipeTmp/seqAnalyzer_AS_171218_crspr_4dist/"
     #workdir="/Data/PipeTmp/seqAnalyzer_AS_171218_crspr_scaff_2dist/"i
-    workdir="/Data/PipeTmp/seqAnalyzer_NS_180425/"
+    #workdir="/Data/PipeTmp/seqAnalyzer_NS_180425/"
+    #workdir="/Data/PipeTmp/seqAnalyzer_NS_180425/lena/"
 fi
 
 mkdir -p $workdir
@@ -441,6 +442,7 @@ fi
 echo $absdest
 mkdir -p $absdest
 cp "${workdir}"*.png "${absdest}/"
+cp "${workdir}"*.svg "${absdest}/"
 cp "${workdir}"*_SC.pslx "${absdest}/"
 cp "$statFile" "${absdest}/Stats.txt"
 cp "${workdir}"*.tsv "${absdest}/"
