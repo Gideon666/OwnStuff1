@@ -203,7 +203,7 @@ def pswmLoop(seq, loop, startPos, endPos, optionDir = {}):
                 #print seq[pos-lS:pos+len(loop)+rS]
                 #print len(seq[pos-lS:pos+len(loop)+rS])
             #print "found"
-            return seq[pos-lS:pos+len(loop)+rS]
+            return seq[max(0,pos-lS):pos+len(loop)+rS]
     return seq[startPos:endPos]
 
 #pswmLoop
