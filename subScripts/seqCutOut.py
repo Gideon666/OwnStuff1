@@ -203,7 +203,7 @@ def pswmLoop(seq, loop, startPos, endPos, optionDir = {}):
                 #print seq[pos-lS:pos+len(loop)+rS]
                 #print len(seq[pos-lS:pos+len(loop)+rS])
             #print "found"
-            return seq[max(0,pos-lS):pos+len(loop)+rS]
+            return seq[max(0, pos-lS):pos+len(loop)+rS]
     return seq[startPos:endPos]
 
 #pswmLoop
@@ -231,7 +231,7 @@ def regExLoop(seq, loop, startPos, endPos, optionDir = {}):
     #looP = re.compile(r'(?:{0}){{e<={1}}}'.format(loop, inDels))
     reL = looP.search(seq)
     if(reL):
-        retSeq = seq[reL.start()-lS:reL.end()+rS]
+        retSeq = seq[max(0, reL.start()-lS):reL.end()+rS]
     else:
         if optionDir['maskLoop']:
             nonMasked = seq[startPos:endPos]
