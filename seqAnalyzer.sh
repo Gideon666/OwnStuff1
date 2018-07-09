@@ -70,6 +70,8 @@ gapsLoop=2
 keep="F"
 itags="F"
 loop="TAGTGAAGCCACAGATGTA"
+cut_left=22
+cut_right=22
 mirSeq="GTATATTGCTGTTGACAGTGAGCG" #default 5'mirE
 u6prom="CTTGGCTTTATATATCTTGTGGAAAGGACG"
 crspr_scaff="TTTTAACTTGCTATTTCTAGCTCTAAAA" # reverse
@@ -83,6 +85,14 @@ do
         -h|--help)
         echo -e $docline
         exit
+        ;;
+        -L|--leftcut)
+        cut_left=$2
+        shift
+        ;;
+        -R|--rightcut)
+        cut_right=$2
+        shift
         ;;
         -k|--keepData)
         keep=true
@@ -174,7 +184,7 @@ absdest="${absdest}/$(basename "${destination}")"
 echo -e "Absolute d.  =\t${absdest}"
 if [[ "$workdir" == false ]]; then
     #workdir="/tmp/seqAnalyzer_$$/"
-    workdir="/Data/PipeTmp/seqAnalyzer_$$/"
+    #workdir="/Data/PipeTmp/seqAnalyzer_$$/"
     #workdir="/Data/PipeTmp/seqAnalyzer_testOutput/"
     #workdir="/Data/PipeTmp/seqAnalyzer_AS_112997_sumUp/"
     #workdir="/Data/PipeTmp/seqAnalyzer3_sumUp/"
@@ -183,8 +193,9 @@ if [[ "$workdir" == false ]]; then
     #workdir="/Data/PipeTmp2/seqAnalyzer_AS_153877_DKFZRun3_sumUp/"
     #workdir="/Data/PipeTmp/seqAnalyzer_AS_171218_crspr_4dist/"
     #workdir="/Data/PipeTmp/seqAnalyzer_AS_171218_crspr_scaff_2dist/"i
-    #workdir="/Data/PipeTmp/seqAnalyzer_NS_180425/"
+    workdir="/Data/PipeTmp/seqAnalyzer_NS_180425/"
     #workdir="/Data/PipeTmp/seqAnalyzer_NS_180425/lena/"
+    #workdir="/Data/PipeTmp/seqAnalyzer_NS_180425/sophia/"
 fi
 
 mkdir -p $workdir
@@ -251,7 +262,8 @@ if [[ "$cutting" == true ]]; then
             ${scriptSource}seqCutOut.py -g "$gapsLoop" -c "$barcodeFile" -m "c" -r "$u6prom" $highBC
         else
             echo "Cutting without iTags!"
-            ${scriptSource}seqCutOut.py -g "$gapsLoop" -c "$barcodeFile" $highBC
+            ${scriptSource}seqCutOut.py -r $loop -L $cut_left -R $cut_right \
+                -g "$gapsLoop" -c "$barcodeFile" $highBC
         fi
     fi
 fi
@@ -302,7 +314,7 @@ if [[ "$blating" == true ]]; then
         poolfile=$(gawk -v b=$barcode '{if($2==b){ print $3; exit}}' "$barcodeFile")
         echo $poolfile
         # creates multi_fasta_files if necessary
-        ${workdir}check_pool_file.sh (${poolfile}
+        ${workdir}check_pool_file.sh ${poolfile}
         if [[ $poolfile != "" ]]; then
             echo "$line Blat against $poolfile"
             if [[ "$crspr" == true ]]; then
