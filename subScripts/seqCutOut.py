@@ -338,10 +338,10 @@ def main():
     optionDir = setDefaultValues()
     try:
         opts, args = getopt.getopt(sys.argv[1:],\
-                "h, o:, m:, c:, l:, a, g:, r:",\
+                "h, o:, m:, c:, l:, a, g:, r:, L:, R:",\
                 ["help", "output=", "mode=", "configFile=",\
                  "loopMissMatches=", "maskLoop", "gabIns=",\
-                 "anchor="])
+                 "anchor=", "patternCutLeft=", "patternCutRight="])
     except getopt.Error, msg:
         sys.stdout.write(msg + "\n")
         sys.stdout.write("For help, use -h!\n")
@@ -354,6 +354,10 @@ def main():
             optionDir['oFile'][0] = string.split(string.strip(a), sep=".")[0]
             optionDir['oFile'][0] +=\
                     datetime.datetime.now().strftime('_%Hh_%d_%m_%y')
+        if o in ['-L', '--patternCutLeft']:
+            optionDir['patternCutLeft'] = int(string.strip(a))
+        if o in ['-R', '--patternCutRight']:
+            optionDir['patternCutRight'] = int(string.strip(a))
         if o in ['-m', '--mode']:
             mode = string.upper(string.strip(a))
             if mode in ['N', 'I', 'C']: #modes
