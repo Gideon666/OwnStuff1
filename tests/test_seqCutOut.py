@@ -15,6 +15,18 @@ def crsprSeq():
     return seq
 
 @pytest.fixture
+def sensorSeq():
+    """
+    >shDnmt3a.1171Spl|Dnmt3a|Dnmt3aPlus_Sensor-Pool:ALL
+    """
+    seq = "TGCTGTTGACAGTGAGCGAACTCCAGATGTTCTTTGCCAATAGTGAAGCCACAGAT"+\
+          "GTATTGGCAAAGAACATCTGGAGTCTGCCGAAGAGCGCTCTTCTATCCTTCTCGAC"+\
+          "TCCAGATGTTCTTTGCCAATAACCATGGTCCAGGCAGGTGAATTCAGCATGAGTAT"+\
+          "TTCCGCGA"
+    return seq
+
+
+@pytest.fixture
 def optionDir():
     """standardValue optionDir
     """
@@ -30,6 +42,15 @@ def optionDirCrspr():
     Options['patternCutRight'] = 28
     return Options
 
+@pytest.fixture
+def optionDirSensor():
+    """
+    """
+    Options = SCO.setDefaultValues()
+    Options['patternCutLeft'] = -22
+    Options['patternCutRight'] = 34
+    return Options
+
 class Test_regExLoop(object):
 
     def test_standard_matching(self, crsprSeq, optionDirCrspr):
@@ -37,6 +58,14 @@ class Test_regExLoop(object):
                 "CTTGGCTTTATATATCTTGTGGAAAGGACG",\
                 70, 90, optionDirCrspr) ==\
                 'GCATGCGATCTATCCGTCGG')
+
+    def test_hairpin_matching(self, sensorSeq, optionDirSensor):
+        test_sensor = "CTTCTCGACTCCAGATGTTCTTTGCCAATAACCA"
+        anchor = "TGCCGAAGAGCGCTCTTCTATC"
+        returned_seq = SCO.regExLoop(sensorSeq, anchor, 116, 150, optionDirSensor)
+        print returned_seq
+        assert(returned_seq == test_sensor)
+        #assert 0
 
 class Test_pswmLoop(object):
 
@@ -60,7 +89,6 @@ class Test_pswmLoop(object):
                 28,\
                 optionDirCrspr\
                 ) == 'GCATGCGATCTATCCGTCGG')
-
 
 
 
