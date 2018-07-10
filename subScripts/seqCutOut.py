@@ -152,7 +152,8 @@ def smartCuttingShRNA(seq, startPos, endPos, optionDir):
     rS=22
     retSeq = ""
     mLen = optionDir['minLength']
-    loop = "TAGTGAAGCCACAGATGTA"
+    #loop = "TAGTGAAGCCACAGATGTA"
+    loop = optionDir['ANCHOR']
     if (optionDir['gabIns'] != 0):
         retSeq = regExLoop(seq, loop, startPos, endPos, optionDir)
     else:
@@ -338,10 +339,11 @@ def main():
     optionDir = setDefaultValues()
     try:
         opts, args = getopt.getopt(sys.argv[1:],\
-                "h, o:, m:, c:, l:, a, g:, r:, L:, R:",\
+                "h, o:, m:, c:, l:, a, g:, r:, L:, R:, e:",\
                 ["help", "output=", "mode=", "configFile=",\
                  "loopMissMatches=", "maskLoop", "gabIns=",\
-                 "anchor=", "patternCutLeft=", "patternCutRight="])
+                 "anchor=", "patternCutLeft=", "patternCutRight=",\
+                 "minLength="])
     except getopt.Error, msg:
         sys.stdout.write(msg + "\n")
         sys.stdout.write("For help, use -h!\n")
@@ -374,6 +376,8 @@ def main():
         if o in ['-g', '--gabIns']:
             print "gabs:"+str(a)
             optionDir['gabIns'] = string.atoi(string.strip(a))
+        if o in ['-e', '--minLength']:
+            optionDir['minLength'] = int(string.strip(a))
     
 
 
