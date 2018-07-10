@@ -72,6 +72,7 @@ itags="F"
 loop="TAGTGAAGCCACAGATGTA"
 cut_left=22
 cut_right=22
+min_target_length=63
 mirSeq="GTATATTGCTGTTGACAGTGAGCG" #default 5'mirE
 u6prom="CTTGGCTTTATATATCTTGTGGAAAGGACG"
 crspr_scaff="TTTTAACTTGCTATTTCTAGCTCTAAAA" # reverse
@@ -147,6 +148,7 @@ do
         collapsing2=true
         maskcheck=true
         statistic=true
+        min_target_length=34
         ;;
         -q|--fastqlines)
         fastqlines="$2"
@@ -263,7 +265,7 @@ if [[ "$cutting" == true ]]; then
         else
             echo "Cutting without iTags!"
             ${scriptSource}seqCutOut.py -r $loop -L $cut_left -R $cut_right \
-                -g "$gapsLoop" -c "$barcodeFile" $highBC
+                -g "$gapsLoop" -e $min_target_length -c "$barcodeFile" $highBC
         fi
     fi
 fi
