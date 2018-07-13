@@ -49,6 +49,11 @@ usage seqAnalyzer.sh [options] FastqReadfile DestinationFolder barcodeTextfile m
     \t-c, --crspr:\n
     \t\tfor crpsr sequencing analysis.\n"
 
+# important variables neet to be stored into database for future runs
+#anchor l=-28 r=34
+srvstep2_spacer="GGCGCGCCAAGCTTATCGATGGATCATC"
+#anchor l=-36 r=34
+repsalong_spacer="TGAATTAATTAAGAATTATCAAGCTTGATGATCATC"
 #debugSwitches:
 # statistic cant run without maskcheck!!!
 trimming=true
@@ -64,7 +69,7 @@ statistic=true
 crspr=false
 
 #default Value init
-rThreshold=10 # read threshold after barcode splitting
+rThreshold=0 # read threshold after barcode splitting
 mmLoop=2
 gapsLoop=2
 keep="F"
@@ -148,6 +153,8 @@ do
         collapsing2=true
         maskcheck=true
         statistic=true
+        ;;
+        --hitlen-sensor)
         min_target_length=34
         ;;
         -q|--fastqlines)
@@ -164,6 +171,7 @@ do
     shift
 done
 
+echo "sorting:  ${sorting}"
 #### init variables
 sourceFile="$1"
 destination="$2"
@@ -198,6 +206,7 @@ if [[ "$workdir" == false ]]; then
     workdir="/Data/PipeTmp/seqAnalyzer_NS_180425/"
     #workdir="/Data/PipeTmp/seqAnalyzer_NS_180425/lena/"
     #workdir="/Data/PipeTmp/seqAnalyzer_NS_180425/sophia/"
+    #workdir="Data/PipeTmp/seqAnalyzer_NS_180705/wendan/"
 fi
 
 mkdir -p $workdir
@@ -313,10 +322,11 @@ if [[ "$blating" == true ]]; then
     for line in $col2blat; do
         barcode=${line%_cutout_collapsed.fasta}
         barcode=${barcode#*_BC_}
+        echo "barcode : "$barcode
         poolfile=$(gawk -v b=$barcode '{if($2==b){ print $3; exit}}' "$barcodeFile")
         echo $poolfile
         # creates multi_fasta_files if necessary
-        ${workdir}check_pool_file.sh ${poolfile}
+        ${scriptSource}check_pool_file.sh ${poolfile} $workdir
         if [[ $poolfile != "" ]]; then
             echo "$line Blat against $poolfile"
             if [[ "$crspr" == true ]]; then
@@ -326,7 +336,7 @@ if [[ "$blating" == true ]]; then
                    "${workdir}${poolfile}_pool.fasta" "$line" "${workdir}${barcode}_Pool(${poolfile})_BL.pslx"
 
             else
-                ${blatDestination}blat -oneOff=1 -t=dna -q=dna -out=pslx -dots=5000 \
+                ${blatDestination}blat -tileSize=12 -minMatch=2 -oneOff=1 -t=dna -q=dna -out=pslx -dots=5000 \
                  "${workdir}${poolfile}_pool.fasta" "$line" "${workdir}${barcode}_Pool(${poolfile})_BL.pslx"
             fi
         #else
@@ -336,7 +346,6 @@ if [[ "$blating" == true ]]; then
         fi
     done
 fi
-
 ## 6.##############
 #filter BLAT results
 if [[ "$sorting" == true ]]; then
@@ -345,7 +354,7 @@ if [[ "$sorting" == true ]]; then
     if [[ "$crspr" == true ]]; then
         ${scriptSource}sortBlatOutput.sh -a 20 -n 10 -l "$mappingFile" $inputF
     else    
-        ${scriptSource}sortBlatOutput.sh -n 10 -l "$mappingFile" $inputF
+        ${scriptSource}sortBlatOutput.sh -a $min_target_length -n 10 -l "$mappingFile" $inputF
     fi
 fi
 
@@ -457,7 +466,7 @@ fi
 # cleanup!
 echo $absdest
 mkdir -p $absdest
-cp "${workdir}"*.png "${absdest}/"
+#cp "${workdir}"*.png "${absdest}/"
 cp "${workdir}"*.svg "${absdest}/"
 cp "${workdir}"*_SC.pslx "${absdest}/"
 cp "$statFile" "${absdest}/Stats.txt"
