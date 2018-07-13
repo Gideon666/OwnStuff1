@@ -110,5 +110,5 @@ do
 #   IFS='.'
 done
 #IFS=$OLDIFS
-echo "finished"
+echo "finished sorting ${bName}..."
 #echo ${fileholder[@]}
