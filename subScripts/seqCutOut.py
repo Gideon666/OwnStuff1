@@ -43,7 +43,9 @@ def manage(args, optionDir):
     #pdb.set_trace()
     resDict = {} 
     for a in args:
-        resDict[string.split(a, sep=".")[0]] = cutOutFastq(a, optionDir)
+        store_name = string.split(a, sep=".")
+        store_name = ".".join(store_name[:-1])
+        resDict[store_name] = cutOutFastq(a, optionDir)
     for k, v in resDict.items():
         #saveCutFastq(k, v, optionDir)
         saveCutFasta(k, v, optionDir)
