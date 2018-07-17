@@ -140,26 +140,8 @@ def readFastq(fastqFile, optionDir):
                     #statDict = {}
             if line.startswith(MacCode):
                 loopCounter +=1
+                #refractioning
                 trimBufferDict = add_to_trimBufferDict(item, trimBufferDict, optionDir)
-                ## new FastQ Item, Item[0] = Barcode, Item[1] = FastQ
-                #trimmedItem = trimItem(item, optionDir)
-                #if trimmedItem[0] not in optionDir['barcodes']:
-                #if trimmedItem[0] == None:
-                #    trimBufferDict['_OUT_'].extend(trimmedItem[1])
-                #    counter = 0
-                #    item = [None] * 4
-                #    item[counter] = string.strip(line)
-                #    counter += 1
-                #    continue
-                # change from normal directory to shelve
-                #if trimBufferDict.has_key(trimmedItem[0]):
-                #    trimBufferDict[trimmedItem[0]].extend(trimmedItem[1])
-                #    #statDict[trimmedItem[0]] += 1
-                #else:
-                #    sys.stdout.write("Key :{0} added!\n".format(str(trimmedItem[0])))
-                #    trimBufferDict[trimmedItem[0]] = []
-                #    trimBufferDict[trimmedItem[0]].extend(trimmedItem[1])
-                    #statDict[trimmedItem[0]] = 1
                 counter = 0
                 item = [None]*4
             item[counter] = string.strip(line)
@@ -234,7 +216,11 @@ def trimItem(fastqItem, optionDir):
     else:
         return stdTrimItem(fasqItem, optionDir)
 
-        
+#######################
+#### trimItem Functions
+
+
+## standard trim
 
 def stdTrimItem(item, optionDir, trimNumber = 24, barcodeNumber = 8):
     """
