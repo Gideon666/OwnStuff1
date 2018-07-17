@@ -231,7 +231,8 @@ def writeCSVhairpins(args, optionDir):
         for hpId, hpData in data[bc].items():
             namesplit = string.split(hpId, sep="-")
             if len(namesplit) > 1:
-                hpName = namesplit[0]+"-"+hpId[-7:]
+            #    hpName = namesplit[0]+"-"+hpId[-7:]
+                 hpName = "_".join(namesplit[:-1])+"-"+namesplit[-1]
             else:
                 hpName = namesplit[0]
             reads = string.atof(string.split(hpData[9], sep="-")[1])
@@ -244,6 +245,7 @@ def writeCSVhairpins(args, optionDir):
         except IndexError:
             sys.stdout.write("Index Error in writeCSVhairpins statMaker.py ... {0}\n".format(bc))
             readDict[bc] = pd.Series(column, index=indexName)
+    #pdb.set_trace()
     pDF = pd.DataFrame(readDict)
     pDF.to_csv(optionDir['destination']+"/"+"pandatest.tsv", sep="\t")
     #save for future work to h5
@@ -288,7 +290,7 @@ def makePlots(args, optionDir):
     blatResDict = {}
     #blatResDict2 = getNumbersFromBlat(args, optionDir, N=10, M=0)
     blatResDict2 = optionDir['firstBlatData_{0}'.format(str(optionDir['check_for_Ns']))]
-    
+    allowed_Ns = optionDir['allowed_Ns_in_hit'] 
     for k, v in DataDict.items():
         pD = getPD(k, args, optionDir)
         if pD:
@@ -305,7 +307,7 @@ def makePlots(args, optionDir):
     #### plotting
     
     makePie(ax0, DataDict, TotalDict, args, optionDir, title="Barcode Splitting")
-    makeBoxPlot(ax1, blatResDict, args, optionDir, title="Sequence Read Quantity N>=1", log=True)
+    makeBoxPlot(ax1, blatResDict, args, optionDir, title="Sequence Read Quantity N<={0}".format(str(allowed_Ns)), log=True)
     makePie(ax2, DataDict, TotalDict, args, optionDir, title="Perfect Hits", LC=("LN","LR"))
     makeBoxPlot(ax3, blatResDict2, args, optionDir, title="Sequcence Read Quantity N<=10", log=True)
 
@@ -387,6 +389,8 @@ def makeBoxPlot(ax, blatResDict, args, optionDir, title="", log=False):
             labels.append(optionDir['config'][k][3])
         else:
             labels.append(k)
+    # extends labels to the same length
+    labels = adjust_labels(labels)
     ax.set_title(title, fontsize=12)
     boxDict = ax.boxplot(data, notch=0, vert=1, whis=1.5, sym='+')
     plt.setp(boxDict['boxes'], color='black')
@@ -519,6 +523,18 @@ def plotDotPlot(ax, DataDict, BCkeys, args, optionDir, title="", mode=["default"
         #break
 
 ######Level Three######
+
+def adjust_labels(label_list):
+    ret_label = ""
+    ret_list = []
+    max_len = max(map(len, label_list))
+    f = lambda s: max_len - len(s)
+    for label in label_list:
+        ret_label = label+"_"*f(label)
+        ret_list.append(ret_label)
+    return ret_list
+
+
 
 def fillupInfos(barcodeDict, fieldKeys, keyLen=1):
     """
@@ -733,9 +749,9 @@ def main():
     optionDir = setDefaultValues()
     try:
         opts, args = getopt.getopt(sys.argv[1:],\
-                "h, o:, s:, d:, e:, c:, i, v",\
+                "h, o:, s:, d:, e:, c:, i, v, n:",\
                 ["help", "output=", "statFile=", "destination=", "externalD=",\
-                "configFile=", "iTags", "verbose"])
+                "configFile=", "iTags", "allowed_Ns_in_hit", "verbose"])
     except getopt.Error, msg:
         sys.stdout.write(msg + "\n")
         sys.stdout.write("For help, use -h!\n")
@@ -761,6 +777,8 @@ def main():
             optionDir['iTags'] = True
         if o in ['-v', '--verbose']:
             optionDir['verbose'] = True
+        if o in ['-n', '--allowed_Ns_in_hit']:
+            optionDir['allowed_Ns_in_hit'] = int(string.strip(a))
 
     args, optionDir = processArgs(args, optionDir)
     manage(args, optionDir)
