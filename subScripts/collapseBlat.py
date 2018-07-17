@@ -77,7 +77,7 @@ def calcStats(filename, retDict, optionDir):
     minReads = sortedReads[:10]
     maxReads = sortedReads[::-1][:10]
     add = lambda x, y : x+y
-    nSplit = lambda x : string.split(x, sep="-")[0]
+    nSplit = lambda x : string.split(string.split(x, sep="-")[0], sep="|")[0]
     try:
         readCounter = reduce(add, readDict.values())
     except TypeError:
@@ -112,15 +112,17 @@ def calcStats(filename, retDict, optionDir):
     ax1.set_title("10 Highest")
     ax1.bar(index2, map(itemgetter(1), maxReads), color="crimson")
     ax1.set_xticks(index2+width/2)
-    ax1.set_xticklabels(map(nSplit, map(itemgetter(0), maxReads)))
+    ax1_xticksnames = ax1.set_xticklabels(map(nSplit, map(itemgetter(0), maxReads)))
     ##
     ax3.set_title("10 Lowest")
     ax3.bar(index3, map(itemgetter(1), minReads[::-1]), color="lightgreen")
     ax3.set_xticks(index2+width/2)
-    ax3.set_xticklabels(map(nSplit, map(itemgetter(0), minReads[::-1])))
+    ax3_xticksnames = ax3.set_xticklabels(map(nSplit, map(itemgetter(0), minReads[::-1])))
     ###
+    plt.setp(ax1_xticksnames, rotation=45)
+    plt.setp(ax3_xticksnames, rotation=45)
     plt.tight_layout()
-    plt.savefig(optionDir['destination']+"/"+os.path.basename(filename)+"_stat.png")
+    plt.savefig(optionDir['destination']+"/"+os.path.basename(filename)+"_stat.svg")
     plt.close()
     return optionDir
 
