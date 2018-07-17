@@ -47,7 +47,10 @@ usage seqAnalyzer.sh [options] FastqReadfile DestinationFolder barcodeTextfile m
     \t\tsetting switches and breakpoints if you only
         want to trimm an do the barcodesorting.\n
     \t-c, --crspr:\n
-    \t\tfor crpsr sequencing analysis.\n"
+    \t\tfor crpsr sequencing analysis.\n
+    \t-N:\n
+    \t\tallowed Ns in blat hit after sorting\n
+    \t\tdefault N=10\n"
 
 # important variables neet to be stored into database for future runs
 #anchor l=-28 r=34
@@ -78,11 +81,13 @@ loop="TAGTGAAGCCACAGATGTA"
 cut_left=22
 cut_right=22
 min_target_length=63
+allowedNs_in_hit=20
 mirSeq="GTATATTGCTGTTGACAGTGAGCG" #default 5'mirE
 u6prom="CTTGGCTTTATATATCTTGTGGAAAGGACG"
 crspr_scaff="TTTTAACTTGCTATTTCTAGCTCTAAAA" # reverse
 workdir=false
 fastqlines=0
+command_call=$@
 ####################
 while [[ $# > 0 ]];
 do
@@ -91,6 +96,11 @@ do
         -h|--help)
         echo -e $docline
         exit
+        ;;
+        -N)
+        echo -e "changed allowed Ns ${2}"
+        allowedNs_in_hit=$2
+        shift
         ;;
         -L|--leftcut)
         cut_left=$2
@@ -211,7 +221,8 @@ fi
 
 mkdir -p $workdir
 statFile=${workdir}Stats.txt
-echo -e "#${1}\t${2}\t${3}\t${4}" > $statFile
+
+echo -e "#seqAnalyzer.sh ${command_call[@]}" > $statFile
 #########
 ##Stats##
 #tReads=$(expr $(cat "$sourceFile" | wc -l ) / 4) #| gawk '{if($2 !="total") print $2;}')
@@ -352,14 +363,14 @@ if [[ "$sorting" == true ]]; then
     echo "sorting ..."
     inputF=$(ls ${workdir}*_BL.pslx)
     if [[ "$crspr" == true ]]; then
-        ${scriptSource}sortBlatOutput.sh -a 20 -n 10 -l "$mappingFile" $inputF
+        ${scriptSource}sortBlatOutput.sh -a 20 -n $allowedNs_in_hit -l "$mappingFile" $inputF
     else    
-        ${scriptSource}sortBlatOutput.sh -a $min_target_length -n 10 -l "$mappingFile" $inputF
+        ${scriptSource}sortBlatOutput.sh -a $min_target_length -n $allowedNs_in_hit -l "$mappingFile" $inputF
     fi
 fi
 
 ## 7.#############
-#collapse BLAT results again and plots graphs
+#collapse BLAT results again and plot graphs
 if [[ "$collapsing2" == true ]]; then
     echo "collapsing2 ..."
     inputP=$(ls ${workdir}*_HF.pslx)
@@ -446,9 +457,9 @@ fi
 ##############
 if [[ "$statistic" == true ]]; then
     if [[ "$itags" == true ]]; then
-        ${scriptSource}statMaker.py -s "$statFile" -d "${workdir}" -e _pStat.b -c "$barcodeFile" -i
+        ${scriptSource}statMaker.py -s "$statFile" -d "${workdir}" -e _pStat.b -c "$barcodeFile" -n $allowedNs_in_hit -i
     else
-        ${scriptSource}statMaker.py -s "$statFile" -d "${workdir}" -e _pStat.b -c "$barcodeFile"
+        ${scriptSource}statMaker.py -s "$statFile" -d "${workdir}" -e _pStat.b -c "$barcodeFile" -n $allowedNs_in_hit
     fi
 
 fi
