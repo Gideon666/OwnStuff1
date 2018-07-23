@@ -188,7 +188,7 @@ def writeCSVStats(args, optionDir):
     tDict = optionDir['TotalsDict']
     outputString = ""
     header = "#SampleID\tDescription\tBarcode\tBarcoded Reads\t\
-PerfectLoop\t5'mir Sequence\tCutout Sequences\tCollapsed to # unique Sequences \tshRNAs Blat Hits\t\
+PerfectAnchor\t5'mir Sequence\tCutout Sequences\tCollapsed to # unique Sequences \tshRNAs Blat Hits\t\
 Blat Hits with total # of Reads\tHit Rate\t\tTotalBarcodeReads\n"
 
     for entry, values in DataDict.items():
