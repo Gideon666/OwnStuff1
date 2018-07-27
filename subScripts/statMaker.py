@@ -110,7 +110,11 @@ def structStats(statDict):
             sys.exit(-1)
     #### Onefields
     for tInfo in oneFieldKeys:
-        TotalInfo[tInfo] = string.atoi(statDict[tInfo][0][0])
+        try:
+            TotalInfo[tInfo] = string.atoi(statDict[tInfo][0][0])
+        except KeyError:
+            sys.stdout.write("Key Error : {0} not found!\n".format(str(tInfo)))
+
     #### Threefields
     for multipleInfo in threeFieldKeys:
         for BarcodeList in statDict[multipleInfo]:
@@ -321,6 +325,7 @@ def makePlots(args, optionDir):
     groups = groupPlot(optionDir)
     plotDict = prepareShReadData(blatResDict, optionDir)
     sumFG = lambda x : (x * (x +1)) / 2
+    #pdb.set_trace()
     for ind in xrange(len(groups)):
         group= groups[ind]
         grpSize = len(group[2])
