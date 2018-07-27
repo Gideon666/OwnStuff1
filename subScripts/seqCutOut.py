@@ -13,6 +13,9 @@ options:
     -m --mode: possible modes   n= normal
                                 i= iTags
                                 c= crspr
+    -g, --gabIns:
+        allowed gabs in anchor!
+        not active coz regExLoop ...
 """
 
 import argparse

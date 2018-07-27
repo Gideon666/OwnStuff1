@@ -40,7 +40,7 @@ do
         shift
         ;;
         -m|--allowedM)
-        allowedM=$2
+        allowedMM=$2
         shift
         ;;
         -a|--allowedHitLen)
@@ -96,7 +96,7 @@ do
     hitfile="${bName%_BL.*}_HF.pslx"
     outfile="${bName%_BL.*}_BLATOUT.pslx"
     gawk -v n=$allowedN -v m=$allowedMM -v ifile="$hitfile" -v ofile="$outfile" -v g="$allowedGaps" -v hl="$allowedHitLen"\
-        '{if(($9 == "+") && (($1 + $4) == hl) && (($4 <= n) && ($2 <= m) && ($7 <= g))) {print $0 > ifile} else {print $0 > ofile}}'\
+        '{if(($9 == "+") && (($1 + $4) >= hl) && (($4 <= n) && ($2 <= m) && ($7 <= g))) {print $0 > ifile} else {print $0 > ofile}}'\
        "${bName}"
     #gawk -v n=$allowedN -v m=$allowedMM '{if(not(($9 == "+") && (($1 + $4) == 63) && (($4 <= n) && ($2 <= m)))) print $0;}' "${bName}" > "${bName%_BL.*}_BLATOUT.pslx"
     perfecthits=$(cat ${bName%_BL.*}_HF.pslx | gawk '{print $14}' | sort -u | wc -l)
