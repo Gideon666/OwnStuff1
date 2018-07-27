@@ -60,7 +60,7 @@ repsalong_spacer="TGAATTAATTAAGAATTATCAAGCTTGATGATCATC"
 #debugSwitches:
 # statistic cant run without maskcheck!!!
 trimming=true
-cutting=true
+cutting=true 
 collapsing=true
 library=true
 blating=true
@@ -81,6 +81,7 @@ loop="TAGTGAAGCCACAGATGTA"
 cut_left=22
 cut_right=22
 min_target_length=63
+min_score=30
 allowedNs_in_hit=0
 mirSeq="GTATATTGCTGTTGACAGTGAGCG" #default 5'mirE
 u6prom="CTTGGCTTTATATATCTTGTGGAAAGGACG"
@@ -100,6 +101,10 @@ do
         -N)
         echo -e "changed allowed Ns ${2}"
         allowedNs_in_hit=$2
+        shift
+        ;;
+        -T|--min-target-length)
+        min_target_length=$2
         shift
         ;;
         -L|--leftcut)
@@ -134,6 +139,10 @@ do
         ;;
         -m|--mirCheck)
         mirSeq="$2"
+        shift
+        ;;
+        -M|--blat-minscore)
+        min_score="$2"
         shift
         ;;
         -w|--workingDir)
@@ -173,6 +182,7 @@ do
         ;;
         -c|--crspr)
         crspr=true
+        min_score=18
         ;;
         *)
         break
@@ -204,7 +214,7 @@ absdest="${absdest}/$(basename "${destination}")"
 echo -e "Absolute d.  =\t${absdest}"
 if [[ "$workdir" == false ]]; then
     #workdir="/tmp/seqAnalyzer_$$/"
-    #workdir="/Data/PipeTmp/seqAnalyzer_$$/"
+    workdir="/Data/PipeTmp/seqAnalyzer_$$/"
     #workdir="/Data/PipeTmp/seqAnalyzer_testOutput/"
     #workdir="/Data/PipeTmp/seqAnalyzer_AS_112997_sumUp/"
     #workdir="/Data/PipeTmp/seqAnalyzer3_sumUp/"
@@ -213,10 +223,11 @@ if [[ "$workdir" == false ]]; then
     #workdir="/Data/PipeTmp2/seqAnalyzer_AS_153877_DKFZRun3_sumUp/"
     #workdir="/Data/PipeTmp/seqAnalyzer_AS_171218_crspr_4dist/"
     #workdir="/Data/PipeTmp/seqAnalyzer_AS_171218_crspr_scaff_2dist/"i
-    workdir="/Data/PipeTmp/seqAnalyzer_NS_180425/"
+    #workdir="/Data/PipeTmp/seqAnalyzer_NS_180425/"
     #workdir="/Data/PipeTmp/seqAnalyzer_NS_180425/lena/"
     #workdir="/Data/PipeTmp/seqAnalyzer_NS_180425/sophia/"
     #workdir="Data/PipeTmp/seqAnalyzer_NS_180705/wendan/"
+    #workdir="/Data/PipeTmp/seqAnalyzer_MS_180607/"
 fi
 
 mkdir -p $workdir
@@ -343,11 +354,12 @@ if [[ "$blating" == true ]]; then
             if [[ "$crspr" == true ]]; then
                 echo "Blatting crspr..."
                 ${blatDestination}blat -oneOff=1 -t=dna -q=dna -out=pslx -dots=5000 \
-                    -minScore=18 -tileSize=10 -minMatch=1\
+                    -minScore=$min_score -tileSize=10 -minMatch=1\
                    "${workdir}${poolfile}_pool.fasta" "$line" "${workdir}${barcode}_Pool(${poolfile})_BL.pslx"
 
             else
-                ${blatDestination}blat -tileSize=12 -minMatch=2 -oneOff=1 -t=dna -q=dna -out=pslx -dots=5000 \
+                ${blatDestination}blat -tileSize=12 -minMatch=2 -oneOff=1 \
+                    -minScore=$min_score -t=dna -q=dna -out=pslx -dots=5000 \
                  "${workdir}${poolfile}_pool.fasta" "$line" "${workdir}${barcode}_Pool(${poolfile})_BL.pslx"
             fi
         #else
