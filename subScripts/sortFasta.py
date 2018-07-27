@@ -42,7 +42,11 @@ def sortA(a):
                     retDict[Poolheader].append([header, seq])
                 else:
                     retDict[Poolheader] = [[header,seq]]
-                Poolheader = string.split(mLine, sep=":")[1]
+                try:
+                    Poolheader = string.split(mLine, sep=":")[1]
+                except IndexError as err:
+                    sys.stdout.write("Header failure in: {0}\n".format(mLine))
+                    Poolheader = "N"
                 header = mLine
                 seq = ""
             else:
