@@ -332,11 +332,11 @@ def makePlots(args, optionDir):
         plotNum = sumFG(grpSize-1)
         #print "ind: {0}\ngrpSize: {1}\nplotNum: {2}\n".format(ind, grpSize, plotNum)
         #print groups[ind]
+        if (grpSize <=1):
+            continue
         fig, axes = plt.subplots(nrows=2, ncols=plotNum, figsize=(min(plotNum, 16)*10, 20), dpi=80)
         axesList = axes.flat
     #### plotting
-        if (grpSize <=1):
-            continue
         pairList = onePlotRow(group[2])
         print pairList, group[2]
         for i in xrange(0, plotNum):
