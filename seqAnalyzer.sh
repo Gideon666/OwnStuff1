@@ -35,6 +35,7 @@ usage seqAnalyzer.sh [options] FastqReadfile DestinationFolder barcodeTextfile m
     \t\tallowed missmatches in the shRNALoop, default=2\n
     \t-a,--gapsLoop:\n
     \t\tallowed gaps in the shRNALoop, default=2\n
+    \t\tdisabled in seqcutout\n
     \t-i,--itags:\n
     \t\titags mode\n
     \t-l,--loop:\n
@@ -45,12 +46,19 @@ usage seqAnalyzer.sh [options] FastqReadfile DestinationFolder barcodeTextfile m
     \t\tpath to custom working Directory\n
     \t-j,--justSorting:\n
     \t\tsetting switches and breakpoints if you only
-        want to trimm an do the barcodesorting.\n
+        want to trimm and do the barcodesorting.\n
     \t-c, --crspr:\n
     \t\tfor crpsr sequencing analysis.\n
     \t-N:\n
     \t\tallowed Ns in blat hit after sorting\n
-    \t\tdefault N=10\n"
+    \t\tdefault N=10\n
+    \t-T,--min-target-length:\n
+    \t\tset minimum blat target length\n
+    \t-n,--nextSeq:\n
+    \t\tnextSeq switch needs -q\n
+    \t-q,--fastqlines:\n
+    \t\tset the number of entrys(reads) in the original fastq\n
+    \t\tdata instead of counting\n"
 
 # important variables neet to be stored into database for future runs
 #anchor l=-28 r=34
@@ -184,6 +192,18 @@ do
         crspr=true
         min_score=18
         ;;
+        --only-stats)
+        keep=true
+        trimming=false
+        cutting=false
+        collapsing=false
+        library=false
+        blating=false
+        sorting=false
+        collapsing2=false
+        maskcheck=true
+        statistic=true
+        ;;
         *)
         break
         ;;
@@ -285,7 +305,7 @@ gawk 'BEGIN {n=0}; {n+=$1}; END {print n, "total"}' "${workdir}_highBarcodes.txt
 # crps cutout
 highBC=$(gawk ' {if($2 !="total") print $2;}' "${workdir}_highBarcodes.txt") 
 if [[ "$cutting" == true ]]; then
-    echo "Cutting ...${gapsLoop}!!"
+    echo "Cutting ..."
     if [[ "$itags" == true ]]; then
         echo "Cutting for iTags!"
         ${scriptSource}seqCutOut.py -m "i" -g "$gapsLoop" -c "$barcodeFile" $highBC
